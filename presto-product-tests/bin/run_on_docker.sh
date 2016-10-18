@@ -57,7 +57,8 @@ function run_product_tests() {
     java "-Djava.util.logging.config.file=/docker/volumes/conf/tempto/logging.properties" \
     -Duser.timezone=Asia/Kathmandu \
     ${TLS_CERTIFICATE} \
-    -jar "/docker/volumes/presto-product-tests/presto-product-tests-executable.jar" \
+    -classpath "/docker/volumes/jdbc/driver.jar:/docker/volumes/presto-product-tests/presto-product-tests-executable.jar" \
+    com.facebook.presto.tests.TemptoProductTestRunner \
     --report-dir "/docker/volumes/test-reports" \
     --config-local "/docker/volumes/tempto/tempto-configuration-local.yaml" \
     "$@" \
@@ -184,11 +185,15 @@ if [[ "$ENVIRONMENT" == "multinode" ]]; then
    PRESTO_SERVICES="${PRESTO_SERVICES} presto-worker"
 elif [[ "$ENVIRONMENT" == "multinode-tls-kerberos" ]]; then
    PRESTO_SERVICES="${PRESTO_SERVICES} presto-worker-1 presto-worker-2"
+elif [[ "$ENVIRONMENT" == "multinode-tls-ldap" ]]; then
+   PRESTO_SERVICES="${PRESTO_SERVICES} presto-worker-1 presto-worker-2 ldapserver"
 fi
 
 CLI_ARGUMENTS="--server presto-master:8080"
 if [[ "$ENVIRONMENT" == "multinode-tls-kerberos" ]]; then
     CLI_ARGUMENTS="--server https://presto-master.docker.cluster:7778 --keystore-path /docker/volumes/conf/presto/etc/docker.cluster.jks --keystore-password 123456 --enable-authentication --krb5-config-path /etc/krb5.conf --krb5-principal presto-client/presto-master.docker.cluster@LABS.TERADATA.COM --krb5-keytab-path /etc/presto/conf/presto-client.keytab --krb5-remote-service-name presto-server --krb5-disable-remote-service-hostname-canonicalization"
+elif [[ "$ENVIRONMENT" == "multinode-tls-ldap" ]]; then
+    CLI_ARGUMENTS="--server https://presto-master.docker.cluster:7778 --keystore-path /docker/volumes/conf/presto/etc/docker.cluster.jks --keystore-password 123456 --user admin -P admin"
 fi
 
 # check docker and docker compose installation
