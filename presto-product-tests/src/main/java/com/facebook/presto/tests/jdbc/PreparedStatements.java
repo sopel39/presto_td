@@ -454,7 +454,6 @@ public class PreparedStatements
                 VARCHAR,
                 CHAR,
                 BOOLEAN,
-                VARBINARY
-            );
-        }
+                VARBINARY);
+    }
 }
