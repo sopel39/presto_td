@@ -294,8 +294,7 @@ public class TestAllDatatypesFromHiveConnector
                     LONGNVARCHAR,
                     CHAR,
                     BOOLEAN,
-                    LONGVARBINARY
-            );
+                    LONGVARBINARY);
         }
         else if (usingTeradataJdbcDriver(connection)) {
             assertThat(queryResult).hasColumns(
@@ -312,8 +311,7 @@ public class TestAllDatatypesFromHiveConnector
                     VARCHAR,
                     CHAR,
                     BOOLEAN,
-                    VARBINARY
-            );
+                    VARBINARY);
         }
         else {
             throw new IllegalStateException();
