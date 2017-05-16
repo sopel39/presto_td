@@ -180,6 +180,7 @@ public class PushPartialAggregationThroughExchange
                 partitioning,
                 partials,
                 ImmutableList.copyOf(Collections.nCopies(partials.size(), aggregation.getOutputSymbols())),
+                exchange.isOrderSensitive(),
                 Optional.empty());
     }
 
