@@ -77,6 +77,7 @@ public final class SystemSessionProperties
     public static final String FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_SIZE = "filter_and_project_min_output_page_size";
     public static final String FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_ROW_COUNT = "filter_and_project_min_output_page_row_count";
     public static final String DISTRIBUTED_SORT = "distributed_sort";
+    public static final String REDISTRIBUTE_SORT = "redistribute_sort";
 
     private final List<PropertyMetadata<?>> sessionProperties;
 
@@ -346,6 +347,11 @@ public final class SystemSessionProperties
                         DISTRIBUTED_SORT,
                         "Parallelize sort across multiple nodes",
                         featuresConfig.isDistributedSortEnabled(),
+                        false),
+                booleanSessionProperty(
+                        REDISTRIBUTE_SORT,
+                        "Force data redistribution before partial sort",
+                        featuresConfig.isRedistributeSort(),
                         false));
     }
 
@@ -546,5 +552,10 @@ public final class SystemSessionProperties
     public static boolean isDistributedSortEnabled(Session session)
     {
         return session.getSystemProperty(DISTRIBUTED_SORT, Boolean.class);
+    }
+
+    public static boolean isRedistributeSort(Session session)
+    {
+        return session.getSystemProperty(REDISTRIBUTE_SORT, Boolean.class);
     }
 }

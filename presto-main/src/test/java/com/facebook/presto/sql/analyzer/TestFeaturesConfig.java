@@ -71,7 +71,8 @@ public class TestFeaturesConfig
                 .setParseDecimalLiteralsAsDouble(false)
                 .setFilterAndProjectMinOutputPageSize(new DataSize(25, KILOBYTE))
                 .setFilterAndProjectMinOutputPageRowCount(256)
-                .setDistributedSortEnabled(false));
+                .setDistributedSortEnabled(false)
+                .setRedistributeSort(true));
     }
 
     @Test
@@ -113,6 +114,7 @@ public class TestFeaturesConfig
                 .put("experimental.filter-and-project-min-output-page-size", "1MB")
                 .put("experimental.filter-and-project-min-output-page-row-count", "2048")
                 .put("experimental.distributed-sort", "true")
+                .put("experimental.redistribute-sort", "false")
                 .build();
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
                 .put("experimental.resource-groups-enabled", "true")
@@ -150,6 +152,7 @@ public class TestFeaturesConfig
                 .put("experimental.filter-and-project-min-output-page-size", "1MB")
                 .put("experimental.filter-and-project-min-output-page-row-count", "2048")
                 .put("experimental.distributed-sort", "true")
+                .put("experimental.redistribute-sort", "false")
                 .build();
 
         FeaturesConfig expected = new FeaturesConfig()
@@ -187,7 +190,8 @@ public class TestFeaturesConfig
                 .setParseDecimalLiteralsAsDouble(true)
                 .setFilterAndProjectMinOutputPageSize(new DataSize(1, MEGABYTE))
                 .setFilterAndProjectMinOutputPageRowCount(2048)
-                .setDistributedSortEnabled(true);
+                .setDistributedSortEnabled(true)
+                .setRedistributeSort(false);
 
         assertFullMapping(properties, expected);
         assertDeprecatedEquivalence(FeaturesConfig.class, properties, propertiesLegacy);
