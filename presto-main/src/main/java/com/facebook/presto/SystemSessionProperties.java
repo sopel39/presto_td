@@ -76,6 +76,7 @@ public final class SystemSessionProperties
     public static final String PARSE_DECIMAL_LITERALS_AS_DOUBLE = "deprecated_parse_decimal_literals_as_double";
     public static final String FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_SIZE = "filter_and_project_min_output_page_size";
     public static final String FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_ROW_COUNT = "filter_and_project_min_output_page_row_count";
+    public static final String DISTRIBUTED_SORT = "distributed_sort";
 
     private final List<PropertyMetadata<?>> sessionProperties;
 
@@ -340,6 +341,11 @@ public final class SystemSessionProperties
                         FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_ROW_COUNT,
                         "Experimental: Minimum output page row count for filter and project operators",
                         featuresConfig.getFilterAndProjectMinOutputPageRowCount(),
+                        false),
+                booleanSessionProperty(
+                        DISTRIBUTED_SORT,
+                        "Parallelize sort across multiple nodes",
+                        featuresConfig.isDistributedSortEnabled(),
                         false));
     }
 
@@ -535,5 +541,10 @@ public final class SystemSessionProperties
     public static int getFilterAndProjectMinOutputPageRowCount(Session session)
     {
         return session.getSystemProperty(FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_ROW_COUNT, Integer.class);
+    }
+
+    public static boolean isDistributedSortEnabled(Session session)
+    {
+        return session.getSystemProperty(DISTRIBUTED_SORT, Boolean.class);
     }
 }

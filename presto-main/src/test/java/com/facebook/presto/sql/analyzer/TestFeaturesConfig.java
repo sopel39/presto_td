@@ -70,7 +70,8 @@ public class TestFeaturesConfig
                 .setPushAggregationThroughJoin(true)
                 .setParseDecimalLiteralsAsDouble(false)
                 .setFilterAndProjectMinOutputPageSize(new DataSize(25, KILOBYTE))
-                .setFilterAndProjectMinOutputPageRowCount(256));
+                .setFilterAndProjectMinOutputPageRowCount(256)
+                .setDistributedSortEnabled(false));
     }
 
     @Test
@@ -111,6 +112,7 @@ public class TestFeaturesConfig
                 .put("deprecated.parse-decimal-literals-as-double", "true")
                 .put("experimental.filter-and-project-min-output-page-size", "1MB")
                 .put("experimental.filter-and-project-min-output-page-row-count", "2048")
+                .put("experimental.distributed-sort", "true")
                 .build();
         Map<String, String> properties = new ImmutableMap.Builder<String, String>()
                 .put("experimental.resource-groups-enabled", "true")
@@ -147,6 +149,7 @@ public class TestFeaturesConfig
                 .put("deprecated.parse-decimal-literals-as-double", "true")
                 .put("experimental.filter-and-project-min-output-page-size", "1MB")
                 .put("experimental.filter-and-project-min-output-page-row-count", "2048")
+                .put("experimental.distributed-sort", "true")
                 .build();
 
         FeaturesConfig expected = new FeaturesConfig()
@@ -183,7 +186,8 @@ public class TestFeaturesConfig
                 .setEnableIntermediateAggregations(true)
                 .setParseDecimalLiteralsAsDouble(true)
                 .setFilterAndProjectMinOutputPageSize(new DataSize(1, MEGABYTE))
-                .setFilterAndProjectMinOutputPageRowCount(2048);
+                .setFilterAndProjectMinOutputPageRowCount(2048)
+                .setDistributedSortEnabled(true);
 
         assertFullMapping(properties, expected);
         assertDeprecatedEquivalence(FeaturesConfig.class, properties, propertiesLegacy);
