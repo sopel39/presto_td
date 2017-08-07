@@ -74,6 +74,8 @@ public final class SystemSessionProperties
     public static final String PUSH_AGGREGATION_THROUGH_JOIN = "push_aggregation_through_join";
     public static final String PUSH_PARTIAL_AGGREGATION_THROUGH_JOIN = "push_partial_aggregation_through_join";
     public static final String PARSE_DECIMAL_LITERALS_AS_DOUBLE = "deprecated_parse_decimal_literals_as_double";
+    public static final String FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_SIZE = "filter_and_project_min_output_page_size";
+    public static final String FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_ROW_COUNT = "filter_and_project_min_output_page_row_count";
 
     private final List<PropertyMetadata<?>> sessionProperties;
 
@@ -324,6 +326,20 @@ public final class SystemSessionProperties
                         PARSE_DECIMAL_LITERALS_AS_DOUBLE,
                         "Parse decimal literals as DOUBLE instead of DECIMAL",
                         featuresConfig.isParseDecimalLiteralsAsDouble(),
+                        false),
+                new PropertyMetadata<>(
+                        FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_SIZE,
+                        "Experimental: Minimum output page size for filter and project operators",
+                        VARCHAR,
+                        DataSize.class,
+                        featuresConfig.getFilterAndProjectMinOutputPageSize(),
+                        false,
+                        value -> DataSize.valueOf((String) value),
+                        DataSize::toString),
+                integerSessionProperty(
+                        FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_ROW_COUNT,
+                        "Experimental: Minimum output page row count for filter and project operators",
+                        featuresConfig.getFilterAndProjectMinOutputPageRowCount(),
                         false));
     }
 
@@ -509,5 +525,15 @@ public final class SystemSessionProperties
     public static boolean isParseDecimalLiteralsAsDouble(Session session)
     {
         return session.getSystemProperty(PARSE_DECIMAL_LITERALS_AS_DOUBLE, Boolean.class);
+    }
+
+    public static DataSize getFilterAndProjectMinOutputPageSize(Session session)
+    {
+        return session.getSystemProperty(FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_SIZE, DataSize.class);
+    }
+
+    public static int getFilterAndProjectMinOutputPageRowCount(Session session)
+    {
+        return session.getSystemProperty(FILTER_AND_PROJECT_MIN_OUTPUT_PAGE_ROW_COUNT, Integer.class);
     }
 }
