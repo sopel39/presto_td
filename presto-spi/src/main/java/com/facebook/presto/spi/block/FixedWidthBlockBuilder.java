@@ -21,8 +21,6 @@ import org.openjdk.jol.info.ClassLayout;
 
 import javax.annotation.Nullable;
 
-import java.util.List;
-
 import static com.facebook.presto.spi.block.BlockUtil.MAX_ARRAY_SIZE;
 import static com.facebook.presto.spi.block.BlockUtil.calculateBlockResetSize;
 import static com.facebook.presto.spi.block.BlockUtil.checkValidPositions;
@@ -101,18 +99,19 @@ public class FixedWidthBlockBuilder
     }
 
     @Override
-    public Block copyPositions(List<Integer> positions)
+    public Block copyPositions(int[] positions, int offset, int length)
     {
-        checkValidPositions(positions, positionCount);
+        checkValidPositions(positions, offset, length, positionCount);
 
-        SliceOutput newSlice = Slices.allocate(positions.size() * fixedSize).getOutput();
-        SliceOutput newValueIsNull = Slices.allocate(positions.size()).getOutput();
+        SliceOutput newSlice = Slices.allocate(length * fixedSize).getOutput();
+        SliceOutput newValueIsNull = Slices.allocate(length).getOutput();
 
-        for (int position : positions) {
+        for (int i = 0; i < length; ++i) {
+            int position = positions[offset + i];
             newValueIsNull.appendByte(valueIsNull.getUnderlyingSlice().getByte(position));
             newSlice.appendBytes(getRawSlice().getBytes(position * fixedSize, fixedSize));
         }
-        return new FixedWidthBlock(fixedSize, positions.size(), newSlice.slice(), newValueIsNull.slice());
+        return new FixedWidthBlock(fixedSize, length, newSlice.slice(), newValueIsNull.slice());
     }
 
     @Override
