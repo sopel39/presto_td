@@ -21,11 +21,11 @@ import java.util.List;
 public abstract class AbstractSingleMapBlock
         implements Block
 {
-    abstract int getOffset();
+    public abstract int getOffset();
 
-    abstract Block getKeyBlock();
+    public abstract Block getKeyBlock();
 
-    abstract Block getValueBlock();
+    public abstract Block getValueBlock();
 
     private int getAbsolutePosition(int position)
     {

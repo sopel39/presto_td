@@ -34,6 +34,11 @@ public abstract class AbstractSingleRowBlock
         this.numFields = numFields;
     }
 
+    public int getStartOffset()
+    {
+        return startOffset;
+    }
+
     private int getAbsolutePosition(int position)
     {
         if (position < 0 || position >= getPositionCount()) {

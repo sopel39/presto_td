@@ -22,13 +22,13 @@ public abstract class AbstractRowBlock
 {
     protected final int numFields;
 
-    protected abstract Block[] getFieldBlocks();
+    public abstract Block[] getFieldBlocks();
 
-    protected abstract int[] getFieldBlockOffsets();
+    public abstract int[] getFieldBlockOffsets();
 
-    protected abstract int getOffsetBase();
+    public abstract int getOffsetBase();
 
-    protected abstract boolean[] getRowIsNull();
+    public abstract boolean[] getRowIsNull();
 
     // the offset in each field block, it can also be viewed as the "entry-based" offset in the RowBlock
     protected int getFieldBlockOffset(int position)

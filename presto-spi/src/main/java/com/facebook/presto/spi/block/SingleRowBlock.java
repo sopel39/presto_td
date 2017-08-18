@@ -27,7 +27,7 @@ public class SingleRowBlock
 
     private final Block[] fieldBlocks;
 
-    SingleRowBlock(int cellOffset, Block[] fieldBlocks)
+    public SingleRowBlock(int cellOffset, Block[] fieldBlocks)
     {
         super(cellOffset, fieldBlocks.length);
         this.fieldBlocks = fieldBlocks;

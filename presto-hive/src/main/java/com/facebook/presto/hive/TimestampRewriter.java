@@ -16,17 +16,22 @@ package com.facebook.presto.hive;
 import com.facebook.presto.spi.Page;
 import com.facebook.presto.spi.block.AbstractArrayBlock;
 import com.facebook.presto.spi.block.AbstractMapBlock;
+import com.facebook.presto.spi.block.AbstractRowBlock;
 import com.facebook.presto.spi.block.AbstractSingleMapBlock;
+import com.facebook.presto.spi.block.AbstractSingleRowBlock;
 import com.facebook.presto.spi.block.ArrayBlock;
 import com.facebook.presto.spi.block.Block;
 import com.facebook.presto.spi.block.BlockBuilder;
 import com.facebook.presto.spi.block.BlockBuilderStatus;
 import com.facebook.presto.spi.block.LazyBlock;
 import com.facebook.presto.spi.block.MapBlock;
+import com.facebook.presto.spi.block.RowBlock;
 import com.facebook.presto.spi.block.SingleMapBlock;
+import com.facebook.presto.spi.block.SingleRowBlock;
 import com.facebook.presto.spi.function.OperatorType;
 import com.facebook.presto.spi.type.ArrayType;
 import com.facebook.presto.spi.type.MapType;
+import com.facebook.presto.spi.type.RowType;
 import com.facebook.presto.spi.type.Type;
 import com.facebook.presto.spi.type.TypeManager;
 import com.google.common.collect.ImmutableList;
@@ -98,6 +103,9 @@ public class TimestampRewriter
         }
         if (type instanceof MapType) {
             return modifyTimestampsInMapBlock(type, block, modification);
+        }
+        if (type instanceof RowType) {
+            return modifyTimestampsInRowBlock(type, block, modification);
         }
 
         return block; // REMOVE AND UNCOMNET
@@ -195,6 +203,55 @@ public class TimestampRewriter
         return new SingleMapBlock(0, mapBlock.getPositionCount(), innerKeyBlock, innerValueBlock, null, keyType, keyNativeHashCode, keyBlockNativeEquals);
     }
 
+    private Block modifyTimestampsInRowBlock(Type type, Block block, LongUnaryOperator modification)
+    {
+        if (block == null) {
+            return null;
+        }
+
+        if (block instanceof AbstractRowBlock) {
+            AbstractRowBlock rowBlock = (AbstractRowBlock) block;
+            Block[] innerBlocks = rowBlock.getFieldBlocks();
+            for (int i = 0; i < type.getTypeParameters().size(); ++i) {
+                Type paramType = type.getTypeParameters().get(i);
+                innerBlocks[i] = wrapBlockInLazyTimestampRewritingBlock(innerBlocks[i], paramType, modification);
+            }
+            return new RowBlock(rowBlock.getOffsetBase(), rowBlock.getPositionCount(), rowBlock.getRowIsNull(), rowBlock.getFieldBlockOffsets(), innerBlocks);
+        }
+        else {
+            BlockBuilder blockBuilder = type.createBlockBuilder(new BlockBuilderStatus(), block.getPositionCount());
+            for (int i = 0; i < block.getPositionCount(); ++i) {
+                if (block.isNull(i)) {
+                    blockBuilder.appendNull();
+                }
+                else {
+                    type.writeObject(blockBuilder, modifyTimestampsInSingleRowBlock(type, block.getObject(i, Block.class), modification));
+                }
+            }
+            return blockBuilder.build();
+        }
+    }
+
+    private Object modifyTimestampsInSingleRowBlock(Type type, Block block, LongUnaryOperator modification)
+    {
+        checkArgument(block instanceof AbstractSingleRowBlock, "Rows represented by other type than AbstractSingleRowBlock are not supported.");
+        if (block == null) {
+            return null;
+        }
+
+        AbstractSingleRowBlock singleRowBlock = (AbstractSingleRowBlock) block;
+        Block innerBlocks[] = new Block[type.getTypeParameters().size()];
+        for (int i = 0; i < type.getTypeParameters().size(); ++i) {
+            if (singleRowBlock.isNull(i)) {
+                innerBlocks[i] = null;
+            }
+            else {
+                innerBlocks[i] = wrapBlockInLazyTimestampRewritingBlock(singleRowBlock.getSingleValueBlock(i), type.getTypeParameters().get(i), modification);
+            }
+        }
+        return new SingleRowBlock(singleRowBlock.getStartOffset(), innerBlocks);
+    }
+
     private Block modifyTimestampsInTimestampBlock(Block block, LongUnaryOperator modification)
     {
         if (block == null) {
@@ -203,8 +260,13 @@ public class TimestampRewriter
 
         BlockBuilder blockBuilder = TIMESTAMP.createFixedSizeBlockBuilder(block.getPositionCount());
         for (int i = 0; i < block.getPositionCount(); ++i) {
-            long millis = block.getLong(i, 0);
-            blockBuilder.writeLong(modification.applyAsLong(millis));
+            if (block.isNull(i)) {
+                blockBuilder.appendNull();
+            }
+            else {
+                long millis = block.getLong(i, 0);
+                blockBuilder.writeLong(modification.applyAsLong(millis));
+            }
         }
 
         return blockBuilder.build();

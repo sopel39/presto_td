@@ -41,7 +41,7 @@ public class SingleMapBlock
     private final MethodHandle keyNativeHashCode;
     private final MethodHandle keyBlockNativeEquals;
 
-    SingleMapBlock(int offset, int positionCount, Block keyBlock, Block valueBlock, int[] hashTable, Type keyType, MethodHandle keyNativeHashCode, MethodHandle keyBlockNativeEquals)
+    public SingleMapBlock(int offset, int positionCount, Block keyBlock, Block valueBlock, int[] hashTable, Type keyType, MethodHandle keyNativeHashCode, MethodHandle keyBlockNativeEquals)
     {
         this.offset = offset;
         this.positionCount = positionCount;
@@ -95,13 +95,13 @@ public class SingleMapBlock
     }
 
     @Override
-    Block getKeyBlock()
+    public Block getKeyBlock()
     {
         return keyBlock;
     }
 
     @Override
-    Block getValueBlock()
+    public Block getValueBlock()
     {
         return valueBlock;
     }
