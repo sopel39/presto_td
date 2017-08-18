@@ -80,7 +80,7 @@ public class InterleavedBlockBuilder
     }
 
     @Override
-    protected Block getBlock(int blockIndex)
+    public Block getBlock(int blockIndex)
     {
         if (blockIndex < 0) {
             throw new IllegalArgumentException("position is not valid");

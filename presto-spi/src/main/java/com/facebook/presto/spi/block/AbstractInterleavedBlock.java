@@ -23,7 +23,7 @@ public abstract class AbstractInterleavedBlock
 {
     private final int columns;
 
-    protected abstract Block getBlock(int blockIndex);
+    public abstract Block getBlock(int blockIndex);
 
     protected abstract int toAbsolutePosition(int position);
 
@@ -219,7 +219,13 @@ public abstract class AbstractInterleavedBlock
         int positionInBlock = position / columns;
 
         // return the underlying block directly, as it is unnecessary to wrap around it if there's only one block
-        return getBlock(blockIndex).getSingleValueBlock(positionInBlock);
+        try {
+            return getBlock(blockIndex).getSingleValueBlock(positionInBlock);
+        }
+        catch (IllegalArgumentException iae)
+        {
+            return null;
+        }
     }
 
     @Override
