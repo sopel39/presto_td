@@ -76,6 +76,10 @@ public class PrestoCliTests
     @Named("databases.presto.jdbc_user")
     private String jdbcUser;
 
+    @Inject
+    @Named("databases.hive.schema")
+    private String defaultSchema;
+
     public PrestoCliTests()
             throws IOException
     {}
@@ -108,7 +112,7 @@ public class PrestoCliTests
     {
         launchPrestoCliWithServerArgument();
         presto.waitForPrompt();
-        presto.getProcessInput().println("select * from hive.default.nation;");
+        presto.getProcessInput().println("select * from hive." + defaultSchema + ".nation;");
         assertThat(trimLines(presto.readLinesUntilPrompt())).containsAll(nationTableInteractiveLines);
     }
 
@@ -116,7 +120,7 @@ public class PrestoCliTests
     public void shouldRunBatchQuery()
             throws IOException, InterruptedException
     {
-        launchPrestoCliWithServerArgument("--execute", "select * from hive.default.nation;");
+        launchPrestoCliWithServerArgument("--execute", "select * from hive." + defaultSchema + ".nation;");
 
         assertThat(trimLines(presto.readRemainingOutputLines())).containsAll(nationTableBatchLines);
     }
@@ -125,7 +129,7 @@ public class PrestoCliTests
     public void shouldUseCatalogAndSchemaOptions()
             throws IOException, InterruptedException
     {
-        launchPrestoCliWithServerArgument("--catalog", "hive", "--schema", "default", "--execute", "select * from nation;");
+        launchPrestoCliWithServerArgument("--catalog", "hive", "--schema", defaultSchema, "--execute", "select * from nation;");
         assertThat(trimLines(presto.readRemainingOutputLines())).containsAll(nationTableBatchLines);
     }
 
@@ -135,7 +139,7 @@ public class PrestoCliTests
     {
         File temporayFile = File.createTempFile("test-sql", null);
         temporayFile.deleteOnExit();
-        Files.write("select * from hive.default.nation;\n", temporayFile, UTF_8);
+        Files.write("select * from hive." + defaultSchema + ".nation;\n", temporayFile, UTF_8);
 
         launchPrestoCliWithServerArgument("--file", temporayFile.getAbsolutePath());
         assertThat(trimLines(presto.readRemainingOutputLines())).containsAll(nationTableBatchLines);
