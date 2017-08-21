@@ -31,20 +31,18 @@ public class SemiJoinStatsCalculator
     {
         return compute(sourceStats, filteringSourceStats, sourceJoinSymbol, filteringSourceJoinSymbol,
                 (sourceJoinSymbolStats, filteringSourceJoinSymbolStats) ->
-                        (1 - sourceJoinSymbolStats.getNullsFraction()) * min(filteringSourceJoinSymbolStats.getDistinctValuesCount() / sourceJoinSymbolStats.getDistinctValuesCount(), 1),
-                (sourceJoinSymbolStats, filteringSourceJoinSymbolStats) ->
                         min(filteringSourceJoinSymbolStats.getDistinctValuesCount(), sourceJoinSymbolStats.getDistinctValuesCount()));
     }
 
-    private static final double MAX_ANTI_JOIN_FILTER_COEFFICIENT = 0.5; //arbitrary value to be on the safe side when filtering using ANTI_JOIN and when value set for filter symbol does not actually overlap with source symbol very much
+    // arbitrary value to be on the safe side when filtering using Anti Join and when value set for filter symbol does not actually overlap with source symbol very much
+    private static final double MAX_ANTI_JOIN_FILTER_COEFFICIENT = 0.5;
 
     public PlanNodeStatsEstimate computeAntiJoin(PlanNodeStatsEstimate sourceStats, PlanNodeStatsEstimate filteringSourceStats, Symbol sourceJoinSymbol, Symbol filteringSourceJoinSymbol)
     {
         return compute(sourceStats, filteringSourceStats, sourceJoinSymbol, filteringSourceJoinSymbol,
                 (sourceJoinSymbolStats, filteringSourceJoinSymbolStats) ->
-                        (1 - sourceJoinSymbolStats.getNullsFraction()) * (1 - min(filteringSourceJoinSymbolStats.getDistinctValuesCount() / sourceJoinSymbolStats.getDistinctValuesCount(), MAX_ANTI_JOIN_FILTER_COEFFICIENT)),
-                (sourceJoinSymbolStats, filteringSourceJoinSymbolStats) ->
-                        max(sourceJoinSymbolStats.getDistinctValuesCount() * MAX_ANTI_JOIN_FILTER_COEFFICIENT, sourceJoinSymbolStats.getDistinctValuesCount() - filteringSourceJoinSymbolStats.getDistinctValuesCount()));
+                        max(sourceJoinSymbolStats.getDistinctValuesCount() * MAX_ANTI_JOIN_FILTER_COEFFICIENT,
+                                sourceJoinSymbolStats.getDistinctValuesCount() - filteringSourceJoinSymbolStats.getDistinctValuesCount()));
     }
 
     private PlanNodeStatsEstimate compute(
@@ -52,24 +50,22 @@ public class SemiJoinStatsCalculator
             PlanNodeStatsEstimate filteringSourceStats,
             Symbol sourceJoinSymbol,
             Symbol filteringSourceJoinSymbol,
-            BiFunction<SymbolStatsEstimate, SymbolStatsEstimate, Double> filterFactorProvider,
             BiFunction<SymbolStatsEstimate, SymbolStatsEstimate, Double> retainedNdvProvider)
     {
         SymbolStatsEstimate sourceJoinSymbolStats = sourceStats.getSymbolStatistics(sourceJoinSymbol);
         SymbolStatsEstimate filteringSourceJoinSymbolStats = filteringSourceStats.getSymbolStatistics(filteringSourceJoinSymbol);
 
-        double filterFactor = filterFactorProvider.apply(sourceJoinSymbolStats, filteringSourceJoinSymbolStats);
         double retainedNDV = retainedNdvProvider.apply(sourceJoinSymbolStats, filteringSourceJoinSymbolStats);
-
         if (isNaN(retainedNDV)) {
             return UNKNOWN_STATS;
         }
+        double filterFactor = sourceJoinSymbolStats.getValuesFraction() * retainedNDV / sourceJoinSymbolStats.getDistinctValuesCount();
 
-        PlanNodeStatsEstimate outputStats = sourceStats.mapSymbolColumnStatistics(sourceJoinSymbol, columnStats ->
-                SymbolStatsEstimate.buildFrom(columnStats)
-                        .setNullsFraction(0)
-                        .setDistinctValuesCount(retainedNDV)
-                        .build());
+        SymbolStatsEstimate newSourceJoinSymbolStats = SymbolStatsEstimate.buildFrom(sourceJoinSymbolStats)
+                .setNullsFraction(0)
+                .setDistinctValuesCount(retainedNDV)
+                .build();
+        PlanNodeStatsEstimate outputStats = sourceStats.mapSymbolColumnStatistics(sourceJoinSymbol, oldStats -> newSourceJoinSymbolStats);
         outputStats = outputStats.mapOutputRowCount(rowCount -> rowCount * filterFactor);
 
         return outputStats;
