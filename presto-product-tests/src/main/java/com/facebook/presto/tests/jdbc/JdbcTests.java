@@ -14,6 +14,8 @@
 package com.facebook.presto.tests.jdbc;
 
 import com.facebook.presto.jdbc.PrestoConnection;
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.teradata.tempto.BeforeTestWithContext;
 import com.teradata.tempto.ProductTest;
 import com.teradata.tempto.Requirement;
@@ -60,6 +62,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class JdbcTests
         extends ProductTest
 {
+    @Inject
+    @Named("databases.hive.schema")
+    private String schema;
+
     private static final Logger LOGGER = Logger.get(JdbcTests.class);
     private static final String TABLE_NAME = "nation_table_name";
 
@@ -87,7 +93,7 @@ public class JdbcTests
             throws SQLException
     {
         try (Statement statement = connection.createStatement()) {
-            QueryResult result = queryResult(statement, "select * from hive.default.nation");
+            QueryResult result = queryResult(statement, "select * from hive." + schema + ".nation");
             assertThat(result).matches(PRESTO_NATION_RESULT);
         }
     }
@@ -159,7 +165,7 @@ public class JdbcTests
             throws SQLException
     {
         QueryResult result = QueryResult.forResultSet(metaData().getSchemas("hive", null));
-        assertThat(result).contains(row("default", "hive"));
+        assertThat(result).contains(row(schema, "hive"));
     }
 
     @Test(groups = JDBC)
@@ -168,7 +174,7 @@ public class JdbcTests
             throws SQLException
     {
         QueryResult result = QueryResult.forResultSet(metaData().getTables("hive", null, null, null));
-        assertThat(result).contains(row("hive", "default", "nation", "TABLE", null, null, null, null, null, null));
+        assertThat(result).contains(row("hive", schema, "nation", "TABLE", null, null, null, null, null, null));
     }
 
     @Test(groups = JDBC)
@@ -178,7 +184,7 @@ public class JdbcTests
     {
         // The JDBC spec is vague on what values getColumns() should return, so accept the values that Facebook or Simba return.
 
-        QueryResult result = QueryResult.forResultSet(metaData().getColumns("hive", "default", "nation", null));
+        QueryResult result = QueryResult.forResultSet(metaData().getColumns("hive", schema, "nation", null));
         if (usingPrestoJdbcDriver(connection)) {
             assertThat(result).matches(sqlResultDescriptorForResource("com/facebook/presto/tests/jdbc/get_nation_columns.result"));
         }
