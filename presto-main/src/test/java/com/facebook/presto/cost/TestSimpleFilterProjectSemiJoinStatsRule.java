@@ -15,7 +15,9 @@ package com.facebook.presto.cost;
 
 import com.facebook.presto.sql.planner.Symbol;
 import com.facebook.presto.sql.planner.plan.Assignments;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -50,34 +52,34 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
             .setNullsFraction(0.5)
             .build();
 
-    private SymbolStatsEstimate expectedFilteredPositiveAStats = SymbolStatsEstimate.builder()
+    private SymbolStatsEstimate expectedAInC = SymbolStatsEstimate.builder()
             .setDistinctValuesCount(2)
             .setLowValue(0)
             .setHighValue(10)
             .setNullsFraction(0)
             .build();
 
-    private SymbolStatsEstimate expectedFilteredPositivePlusExtraConjunctAStats = SymbolStatsEstimate.builder()
+    private SymbolStatsEstimate expectedANotInC = SymbolStatsEstimate.builder()
             .setDistinctValuesCount(1.6)
             .setLowValue(0)
             .setHighValue(8)
             .setNullsFraction(0)
             .build();
 
-    private SymbolStatsEstimate expectedFilteredNegativeAStats = SymbolStatsEstimate.builder()
+    private SymbolStatsEstimate expectedANotInCWithExtraFilter = SymbolStatsEstimate.builder()
             .setDistinctValuesCount(8)
             .setLowValue(0)
             .setHighValue(10)
             .setNullsFraction(0)
             .build();
 
-    @BeforeMethod
+    @BeforeClass
     public void setUp()
     {
         tester = new StatsCalculatorTester();
     }
 
-    @AfterMethod
+    @AfterClass(alwaysRun = true)
     public void tearDown()
     {
         tester.close();
@@ -115,7 +117,7 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                         .build())
                 .check(check -> {
                     check.outputRowsCount(180)
-                            .symbolStats("a", assertion -> assertion.isEqualTo(expectedFilteredPositiveAStats))
+                            .symbolStats("a", assertion -> assertion.isEqualTo(expectedAInC))
                             .symbolStats("b", assertion -> assertion.isEqualTo(bStats))
                             .symbolStatsUnknown("c")
                             .symbolStatsUnknown("sjo");
@@ -154,7 +156,7 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                         .build())
                 .check(check -> {
                     check.outputRowsCount(180)
-                            .symbolStats("a", assertion -> assertion.isEqualTo(expectedFilteredPositiveAStats))
+                            .symbolStats("a", assertion -> assertion.isEqualTo(expectedAInC))
                             .symbolStatsUnknown("b")
                             .symbolStatsUnknown("c")
                             .symbolStatsUnknown("sjo");
@@ -192,7 +194,7 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                         .build())
                 .check(check -> {
                     check.outputRowsCount(144)
-                            .symbolStats("a", assertion -> assertion.isEqualTo(expectedFilteredPositivePlusExtraConjunctAStats))
+                            .symbolStats("a", assertion -> assertion.isEqualTo(expectedANotInC))
                             .symbolStats("b", assertion -> assertion.isEqualTo(bStats))
                             .symbolStatsUnknown("c")
                             .symbolStatsUnknown("sjo");
@@ -230,7 +232,7 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                         .build())
                 .check(check -> {
                     check.outputRowsCount(720)
-                            .symbolStats("a", assertion -> assertion.isEqualTo(expectedFilteredNegativeAStats))
+                            .symbolStats("a", assertion -> assertion.isEqualTo(expectedANotInCWithExtraFilter))
                             .symbolStats("b", assertion -> assertion.isEqualTo(bStats))
                             .symbolStatsUnknown("c")
                             .symbolStatsUnknown("sjo");

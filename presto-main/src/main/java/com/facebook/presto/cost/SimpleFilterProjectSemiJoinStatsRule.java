@@ -102,18 +102,11 @@ public class SimpleFilterProjectSemiJoinStatsRule
             semiJoinStats = semiJoinStatsCalculator.computeSemiJoin(sourceStats, filteringSourceStats, sourceJoinSymbol, filteringSourceJoinSymbol);
         }
 
-        // apply remaining prediate
-        PlanNodeStatsEstimate intermediateFilterStats = filterStatsCalculator.filterStats(semiJoinStats, semiJoinOutputFilter.get().getRemainingPredicate(), session, types);
-
-        // filter out unneeded symbols
-        PlanNodeStatsEstimate.Builder resultStats = PlanNodeStatsEstimate.buildFrom(intermediateFilterStats);
-        intermediateFilterStats.getSymbolsWithKnownStatistics().stream()
-                .filter(s -> !filterNode.getOutputSymbols().contains(s))
-                .forEach(s -> resultStats.removeSymbolStatistics(s));
-        return Optional.of(resultStats.build());
+        // apply remaining predicate
+        return Optional.of(filterStatsCalculator.filterStats(semiJoinStats, semiJoinOutputFilter.get().getRemainingPredicate(), session, types));
     }
 
-    private Optional<SemiJoinOutputFilter> extractSemiJoinOutputFilter(Expression predicate, Symbol semiJoinOutput)
+    private static Optional<SemiJoinOutputFilter> extractSemiJoinOutputFilter(Expression predicate, Symbol semiJoinOutput)
     {
         List<Expression> conjuncts = extractConjuncts(predicate);
         List<Expression> semiJoinOutputReferences = conjuncts.stream()
@@ -131,14 +124,15 @@ public class SimpleFilterProjectSemiJoinStatsRule
         return Optional.of(new SemiJoinOutputFilter(semiJoinOutputReference instanceof NotExpression, remainingPredicate));
     }
 
-    private boolean isSemiJoinOutputReference(Expression conjunct, Symbol semiJoinOutput)
+    private static boolean isSemiJoinOutputReference(Expression conjunct, Symbol semiJoinOutput)
     {
         SymbolReference semiJoinOuputSymbolReference = semiJoinOutput.toSymbolReference();
+        boolean conjunctIsNotExpression = conjunct instanceof NotExpression;
         return conjunct.equals(semiJoinOuputSymbolReference) ||
-                (conjunct instanceof NotExpression && ((NotExpression) conjunct).getValue().equals(semiJoinOuputSymbolReference));
+                (conjunctIsNotExpression && ((NotExpression) conjunct).getValue().equals(semiJoinOuputSymbolReference));
     }
 
-    private class SemiJoinOutputFilter
+    private static class SemiJoinOutputFilter
     {
         private final boolean negated;
         private final Expression remainingPredicate;
@@ -146,7 +140,7 @@ public class SimpleFilterProjectSemiJoinStatsRule
         public SemiJoinOutputFilter(boolean negated, Expression remainingPredicate)
         {
             this.negated = negated;
-            this.remainingPredicate = remainingPredicate;
+            this.remainingPredicate = requireNonNull(remainingPredicate, "remainingPredicate can not be null");
         }
 
         public boolean isNegated()
