@@ -17,8 +17,6 @@ import com.facebook.presto.sql.planner.Symbol;
 
 import java.util.function.BiFunction;
 
-import static com.facebook.presto.cost.PlanNodeStatsEstimate.UNKNOWN_STATS;
-import static java.lang.Double.isNaN;
 import static java.lang.Double.max;
 import static java.lang.Double.min;
 
@@ -56,9 +54,6 @@ public class SemiJoinStatsCalculator
         SymbolStatsEstimate filteringSourceJoinSymbolStats = filteringSourceStats.getSymbolStatistics(filteringSourceJoinSymbol);
 
         double retainedNDV = retainedNdvProvider.apply(sourceJoinSymbolStats, filteringSourceJoinSymbolStats);
-        if (isNaN(retainedNDV)) {
-            return UNKNOWN_STATS;
-        }
         double filterFactor = sourceJoinSymbolStats.getValuesFraction() * retainedNDV / sourceJoinSymbolStats.getDistinctValuesCount();
 
         SymbolStatsEstimate newSourceJoinSymbolStats = SymbolStatsEstimate.buildFrom(sourceJoinSymbolStats)

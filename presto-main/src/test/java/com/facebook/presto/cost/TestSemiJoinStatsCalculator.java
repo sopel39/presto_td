@@ -159,16 +159,23 @@ public class TestSemiJoinStatsCalculator
 
         // source stats are unknown
         assertThat(semiJoinStatsCalculator.computeSemiJoin(inputStatistics, inputStatistics, unknown, u))
-                .symbolStatsUnknown(unknown)
-                .symbolStatsUnknown(u)
-                .symbolStatsUnknown(z)
+                .symbolStats(unknown, stats -> stats
+                        .nullsFraction(0)
+                        .distinctValuesCountUnknown()
+                        .unknownRange())
+                .symbolStats(u, stats -> stats.isEqualTo(uStats))
+                .symbolStats(z, stats -> stats.isEqualTo(zStats))
                 .outputRowsCountUnknown();
 
         // filtering stats are unknown
         assertThat(semiJoinStatsCalculator.computeSemiJoin(inputStatistics, inputStatistics, x, unknown))
-                .symbolStatsUnknown(x)
+                .symbolStats(x, stats -> stats
+                        .nullsFraction(0)
+                        .lowValue(xStats.getLowValue())
+                        .highValue(xStats.getHighValue())
+                        .distinctValuesCountUnknown())
                 .symbolStatsUnknown(unknown)
-                .symbolStatsUnknown(z)
+                .symbolStats(z, stats -> stats.isEqualTo(zStats))
                 .outputRowsCountUnknown();
     }
 
@@ -198,17 +205,24 @@ public class TestSemiJoinStatsCalculator
                 .outputRowsCount(inputStatistics.getOutputRowCount() * xStats.getValuesFraction() * 0.5);
 
         // source stats are unknown
-        assertThat(semiJoinStatsCalculator.computeAntiJoin(inputStatistics, inputStatistics, unknown, u))
-                .symbolStatsUnknown(unknown)
-                .symbolStatsUnknown(u)
-                .symbolStatsUnknown(z)
+        assertThat(semiJoinStatsCalculator.computeSemiJoin(inputStatistics, inputStatistics, unknown, u))
+                .symbolStats(unknown, stats -> stats
+                        .nullsFraction(0)
+                        .distinctValuesCountUnknown()
+                        .unknownRange())
+                .symbolStats(u, stats -> stats.isEqualTo(uStats))
+                .symbolStats(z, stats -> stats.isEqualTo(zStats))
                 .outputRowsCountUnknown();
 
         // filtering stats are unknown
-        assertThat(semiJoinStatsCalculator.computeAntiJoin(inputStatistics, inputStatistics, x, unknown))
-                .symbolStatsUnknown(x)
+        assertThat(semiJoinStatsCalculator.computeSemiJoin(inputStatistics, inputStatistics, x, unknown))
+                .symbolStats(x, stats -> stats
+                        .nullsFraction(0)
+                        .lowValue(xStats.getLowValue())
+                        .highValue(xStats.getHighValue())
+                        .distinctValuesCountUnknown())
                 .symbolStatsUnknown(unknown)
-                .symbolStatsUnknown(z)
+                .symbolStats(z, stats -> stats.isEqualTo(zStats))
                 .outputRowsCountUnknown();
     }
 }
