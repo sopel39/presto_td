@@ -20,7 +20,9 @@ import com.facebook.presto.sql.planner.PlanNodeIdAllocator;
 import com.facebook.presto.sql.planner.Symbol;
 import com.facebook.presto.sql.planner.iterative.Lookup;
 import com.facebook.presto.sql.planner.iterative.rule.test.PlanBuilder;
+import com.facebook.presto.sql.planner.optimizations.PlanNodeSearcher;
 import com.facebook.presto.sql.planner.plan.PlanNode;
+import com.facebook.presto.sql.planner.plan.PlanNodeId;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -89,16 +91,10 @@ public class StatsCalculatorAssertion
         return this;
     }
 
-    public StatsCalculatorAssertion withSourceStats(Function<PlanNode, PlanNode> rootToSourceResolver, Consumer<PlanNodeStatsEstimate.Builder> sourceStatsBuilderConsumer)
+    public StatsCalculatorAssertion withSourceStats(PlanNodeId planNodeId, PlanNodeStatsEstimate sourceStats)
     {
-        PlanNodeStatsEstimate.Builder sourceStatsBuilder = PlanNodeStatsEstimate.builder();
-        sourceStatsBuilderConsumer.accept(sourceStatsBuilder);
-        return withSourceStats(rootToSourceResolver, sourceStatsBuilder.build());
-    }
-
-    public StatsCalculatorAssertion withSourceStats(Function<PlanNode, PlanNode> rootToSourceResolver, PlanNodeStatsEstimate sourceStats)
-    {
-        sourcesStats.put(rootToSourceResolver.apply(planNode), sourceStats);
+        PlanNode sourceNode = PlanNodeSearcher.searchFrom(planNode).where(node -> node.getId().equals(planNodeId)).findOnlyElement();
+        sourcesStats.put(sourceNode, sourceStats);
         return this;
     }
 

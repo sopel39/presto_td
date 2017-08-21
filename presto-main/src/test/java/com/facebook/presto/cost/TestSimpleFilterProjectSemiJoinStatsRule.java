@@ -15,10 +15,9 @@ package com.facebook.presto.cost;
 
 import com.facebook.presto.sql.planner.Symbol;
 import com.facebook.presto.sql.planner.plan.Assignments;
+import com.facebook.presto.sql.planner.plan.PlanNodeId;
 import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Optional;
@@ -86,6 +85,9 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
         tester = null;
     }
 
+    private static final PlanNodeId LEFT_SOURCE_ID = new PlanNodeId("left_source_values");
+    private static final PlanNodeId RIGHT_SOURCE_ID = new PlanNodeId("right_source_values");
+
     @Test
     public void testFilterPositiveSemiJoin()
     {
@@ -97,8 +99,8 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
             return pb.filter(
                     semiJoinOutput.toSymbolReference(),
                     pb.semiJoin(
-                            pb.values(a, b),
-                            pb.values(c),
+                            pb.values(LEFT_SOURCE_ID, a, b),
+                            pb.values(RIGHT_SOURCE_ID, c),
                             a,
                             c,
                             semiJoinOutput,
@@ -106,12 +108,12 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                             Optional.empty(),
                             Optional.empty()));
         })
-                .withSourceStats(filter -> filter.getSources().get(0).getSources().get(0), PlanNodeStatsEstimate.builder()
+                .withSourceStats(LEFT_SOURCE_ID, PlanNodeStatsEstimate.builder()
                         .setOutputRowCount(1000)
                         .addSymbolStatistics(new Symbol("a"), aStats)
                         .addSymbolStatistics(new Symbol("b"), bStats)
                         .build())
-                .withSourceStats(filter -> filter.getSources().get(0).getSources().get(1), PlanNodeStatsEstimate.builder()
+                .withSourceStats(RIGHT_SOURCE_ID, PlanNodeStatsEstimate.builder()
                         .setOutputRowCount(2000)
                         .addSymbolStatistics(new Symbol("c"), cStats)
                         .build())
@@ -136,8 +138,8 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                     expression("sjo"),
                     pb.project(Assignments.identity(semiJoinOutput, a),
                             pb.semiJoin(
-                                    pb.values(a, b),
-                                    pb.values(c),
+                                    pb.values(LEFT_SOURCE_ID, a, b),
+                                    pb.values(RIGHT_SOURCE_ID, c),
                                     a,
                                     c,
                                     semiJoinOutput,
@@ -145,12 +147,12 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                                     Optional.empty(),
                                     Optional.empty())));
         })
-                .withSourceStats(filter -> filter.getSources().get(0).getSources().get(0).getSources().get(0), PlanNodeStatsEstimate.builder()
+                .withSourceStats(LEFT_SOURCE_ID, PlanNodeStatsEstimate.builder()
                         .setOutputRowCount(1000)
                         .addSymbolStatistics(new Symbol("a"), aStats)
                         .addSymbolStatistics(new Symbol("b"), bStats)
                         .build())
-                .withSourceStats(filter -> filter.getSources().get(0).getSources().get(0).getSources().get(1), PlanNodeStatsEstimate.builder()
+                .withSourceStats(RIGHT_SOURCE_ID, PlanNodeStatsEstimate.builder()
                         .setOutputRowCount(2000)
                         .addSymbolStatistics(new Symbol("c"), cStats)
                         .build())
@@ -174,8 +176,8 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
             return pb.filter(
                     expression("sjo AND a < 8"),
                     pb.semiJoin(
-                            pb.values(a, b),
-                            pb.values(c),
+                            pb.values(LEFT_SOURCE_ID, a, b),
+                            pb.values(RIGHT_SOURCE_ID, c),
                             a,
                             c,
                             semiJoinOutput,
@@ -183,12 +185,12 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                             Optional.empty(),
                             Optional.empty()));
         })
-                .withSourceStats(filter -> filter.getSources().get(0).getSources().get(0), PlanNodeStatsEstimate.builder()
+                .withSourceStats(LEFT_SOURCE_ID, PlanNodeStatsEstimate.builder()
                         .setOutputRowCount(1000)
                         .addSymbolStatistics(new Symbol("a"), aStats)
                         .addSymbolStatistics(new Symbol("b"), bStats)
                         .build())
-                .withSourceStats(filter -> filter.getSources().get(0).getSources().get(1), PlanNodeStatsEstimate.builder()
+                .withSourceStats(RIGHT_SOURCE_ID, PlanNodeStatsEstimate.builder()
                         .setOutputRowCount(2000)
                         .addSymbolStatistics(new Symbol("c"), cStats)
                         .build())
@@ -212,8 +214,8 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
             return pb.filter(
                     expression("NOT sjo"),
                     pb.semiJoin(
-                            pb.values(a, b),
-                            pb.values(c),
+                            pb.values(LEFT_SOURCE_ID, a, b),
+                            pb.values(RIGHT_SOURCE_ID, c),
                             a,
                             c,
                             semiJoinOutput,
@@ -221,12 +223,12 @@ public class TestSimpleFilterProjectSemiJoinStatsRule
                             Optional.empty(),
                             Optional.empty()));
         })
-                .withSourceStats(filter -> filter.getSources().get(0).getSources().get(0), PlanNodeStatsEstimate.builder()
+                .withSourceStats(LEFT_SOURCE_ID, PlanNodeStatsEstimate.builder()
                         .setOutputRowCount(1000)
                         .addSymbolStatistics(new Symbol("a"), aStats)
                         .addSymbolStatistics(new Symbol("b"), bStats)
                         .build())
-                .withSourceStats(filter -> filter.getSources().get(0).getSources().get(1), PlanNodeStatsEstimate.builder()
+                .withSourceStats(RIGHT_SOURCE_ID, PlanNodeStatsEstimate.builder()
                         .setOutputRowCount(2000)
                         .addSymbolStatistics(new Symbol("c"), cStats)
                         .build())
