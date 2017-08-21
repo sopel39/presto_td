@@ -121,15 +121,15 @@ public class SimpleFilterProjectSemiJoinStatsRule
         Expression remainingPredicate = combineConjuncts(conjuncts.stream()
                 .filter(conjunct -> conjunct != semiJoinOutputReference)
                 .collect(toImmutableList()));
-        return Optional.of(new SemiJoinOutputFilter(semiJoinOutputReference instanceof NotExpression, remainingPredicate));
+        boolean negated = semiJoinOutputReference instanceof NotExpression;
+        return Optional.of(new SemiJoinOutputFilter(negated, remainingPredicate));
     }
 
     private static boolean isSemiJoinOutputReference(Expression conjunct, Symbol semiJoinOutput)
     {
         SymbolReference semiJoinOuputSymbolReference = semiJoinOutput.toSymbolReference();
-        boolean conjunctIsNotExpression = conjunct instanceof NotExpression;
         return conjunct.equals(semiJoinOuputSymbolReference) ||
-                (conjunctIsNotExpression && ((NotExpression) conjunct).getValue().equals(semiJoinOuputSymbolReference));
+                (conjunct instanceof NotExpression && ((NotExpression) conjunct).getValue().equals(semiJoinOuputSymbolReference));
     }
 
     private static class SemiJoinOutputFilter
