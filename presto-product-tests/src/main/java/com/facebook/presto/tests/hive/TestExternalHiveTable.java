@@ -13,6 +13,8 @@
  */
 package com.facebook.presto.tests.hive;
 
+import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import com.teradata.tempto.ProductTest;
 import com.teradata.tempto.Requirement;
 import com.teradata.tempto.RequirementsProvider;
@@ -35,6 +37,10 @@ public class TestExternalHiveTable
         extends ProductTest
         implements RequirementsProvider
 {
+    @Inject
+    @Named("databases.hive.schema")
+    private String schema;
+
     private static final String EXTERNAL_TABLE_NAME = "target_table";
 
     public Requirement getRequirements(Configuration configuration)
@@ -51,7 +57,7 @@ public class TestExternalHiveTable
         onHive().executeQuery("DROP TABLE IF EXISTS " + EXTERNAL_TABLE_NAME);
         onHive().executeQuery("CREATE EXTERNAL TABLE " + EXTERNAL_TABLE_NAME + " LIKE " + nation.getNameInDatabase());
         assertThat(() -> onPresto().executeQuery(
-                "INSERT INTO hive.default." + EXTERNAL_TABLE_NAME + " SELECT * FROM hive.default." + nation.getNameInDatabase()))
+                "INSERT INTO hive." + schema + "." + EXTERNAL_TABLE_NAME + " SELECT * FROM hive." + schema + "." + nation.getNameInDatabase()))
                 .failsWithMessage("Cannot write to non-managed Hive table");
     }
 
@@ -61,7 +67,7 @@ public class TestExternalHiveTable
         TableInstance nation = mutableTablesState().get(NATION.getName());
         onHive().executeQuery("DROP TABLE IF EXISTS " + EXTERNAL_TABLE_NAME);
         onHive().executeQuery("CREATE EXTERNAL TABLE " + EXTERNAL_TABLE_NAME + " LIKE " + nation.getNameInDatabase());
-        assertThat(() -> onPresto().executeQuery("DELETE FROM hive.default." + EXTERNAL_TABLE_NAME))
+        assertThat(() -> onPresto().executeQuery("DELETE FROM hive." + schema + "." + EXTERNAL_TABLE_NAME))
                 .failsWithMessage("Cannot delete from non-managed Hive table");
     }
 
@@ -77,14 +83,14 @@ public class TestExternalHiveTable
         assertThat(onPresto().executeQuery("SELECT * FROM " + EXTERNAL_TABLE_NAME))
                 .hasRowsCount(3 * NATION_PARTITIONED_BY_REGIONKEY_NUMBER_OF_LINES_PER_SPLIT);
 
-        assertThat(() -> onPresto().executeQuery("DELETE FROM hive.default." + EXTERNAL_TABLE_NAME + " WHERE p_name IS NOT NULL"))
+        assertThat(() -> onPresto().executeQuery("DELETE FROM hive." + schema + "." + EXTERNAL_TABLE_NAME + " WHERE p_name IS NOT NULL"))
                 .failsWithMessage("This connector only supports delete where one or more partitions are deleted entirely");
 
-        onPresto().executeQuery("DELETE FROM hive.default." + EXTERNAL_TABLE_NAME + " WHERE p_regionkey = 1");
+        onPresto().executeQuery("DELETE FROM hive." + schema + "." + EXTERNAL_TABLE_NAME + " WHERE p_regionkey = 1");
         assertThat(onPresto().executeQuery("SELECT * FROM " + EXTERNAL_TABLE_NAME))
                 .hasRowsCount(2 * NATION_PARTITIONED_BY_REGIONKEY_NUMBER_OF_LINES_PER_SPLIT);
 
-        onPresto().executeQuery("DELETE FROM hive.default." + EXTERNAL_TABLE_NAME);
+        onPresto().executeQuery("DELETE FROM hive." + schema + "." + EXTERNAL_TABLE_NAME);
         assertThat(onPresto().executeQuery("SELECT * FROM " + EXTERNAL_TABLE_NAME)).hasRowsCount(0);
     }
 
