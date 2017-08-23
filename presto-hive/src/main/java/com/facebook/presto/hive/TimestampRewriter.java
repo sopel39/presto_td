@@ -24,7 +24,6 @@ import com.facebook.presto.spi.block.BlockBuilder;
 import com.facebook.presto.spi.block.BlockBuilderStatus;
 import com.facebook.presto.spi.block.InterleavedBlock;
 import com.facebook.presto.spi.block.LazyBlock;
-import com.facebook.presto.spi.block.MapBlock;
 import com.facebook.presto.spi.block.SingleMapBlock;
 import com.facebook.presto.spi.function.OperatorType;
 import com.facebook.presto.spi.type.ArrayType;
@@ -138,7 +137,12 @@ public class TimestampRewriter
         else {
             BlockBuilder builder = type.createBlockBuilder(new BlockBuilderStatus(), block.getPositionCount());
             for (int i = 0; i < block.getPositionCount(); ++i) {
-                type.writeObject(builder, wrapBlockInLazyTimestampRewritingBlock(block.getObject(i, Block.class), type.getTypeParameters().get(0), modification));
+                if (block.isNull(i)) {
+                    builder.appendNull();
+                }
+                else {
+                    type.writeObject(builder, wrapBlockInLazyTimestampRewritingBlock(block.getObject(i, Block.class), type.getTypeParameters().get(0), modification));
+                }
             }
             return builder.build();
         }
@@ -150,31 +154,25 @@ public class TimestampRewriter
             return null;
         }
 
-        Type keyType = type.getTypeParameters().get(0);
-        Type valueType = type.getTypeParameters().get(1);
-        MethodHandle keyNativeEquals = typeManager.resolveOperator(OperatorType.EQUAL, ImmutableList.of(keyType, keyType));
-        MethodHandle keyBlockNativeEquals = compose(keyNativeEquals, nativeValueGetter(keyType));
-        MethodHandle keyNativeHashCode = typeManager.resolveOperator(OperatorType.HASH_CODE, ImmutableList.of(keyType));
-        MethodHandle keyBlockHashCode = compose(keyNativeHashCode, nativeValueGetter(keyType));
-
         if (block instanceof AbstractMapBlock) {
             AbstractMapBlock mapBlock = (AbstractMapBlock) block;
+            MapType mapType = (MapType) type;
+            Type keyType = type.getTypeParameters().get(0);
+            Type valueType = type.getTypeParameters().get(1);
             Block innerKeyBlock = wrapBlockInLazyTimestampRewritingBlock(mapBlock.getKeys(), keyType, modification);
             Block innerValueBlock = wrapBlockInLazyTimestampRewritingBlock(mapBlock.getValues(), valueType, modification);
 
-            return MapBlock.fromKeyValueBlock(mapBlock.getMapIsNull(),
-                    mapBlock.getOffsets(),
-                    innerKeyBlock,
-                    innerValueBlock,
-                    (MapType) type,
-                    keyBlockNativeEquals,
-                    keyNativeHashCode,
-                    keyBlockHashCode);
+            return mapType.createBlockFromKeyValue(mapBlock.getMapIsNull(), mapBlock.getOffsets(), innerKeyBlock, innerValueBlock);
         }
         else {
             BlockBuilder builder = type.createBlockBuilder(new BlockBuilderStatus(), block.getPositionCount());
             for (int i = 0; i < block.getPositionCount(); ++i) {
-                type.writeObject(builder, modifyTimestampsInSingleMapBlock(type, block.getObject(i, Block.class), modification));
+                if (block.isNull(i)) {
+                    builder.appendNull();
+                }
+                else {
+                    type.writeObject(builder, modifyTimestampsInSingleMapBlock(type, block.getObject(i, Block.class), modification));
+                }
             }
             return builder.build();
         }
@@ -242,12 +240,7 @@ public class TimestampRewriter
         AbstractInterleavedBlock interleavedBlock = (AbstractInterleavedBlock) block;
         Block innerBlocks[] = new Block[type.getTypeParameters().size()];
         for (int i = 0; i < type.getTypeParameters().size(); ++i) {
-            if (interleavedBlock.isNull(i)) {
-                innerBlocks[i] = null;
-            }
-            else {
-                innerBlocks[i] = wrapBlockInLazyTimestampRewritingBlock(interleavedBlock.getSingleValueBlock(i), type.getTypeParameters().get(i), modification);
-            }
+            innerBlocks[i] = wrapBlockInLazyTimestampRewritingBlock(interleavedBlock.getSingleValueBlock(i), type.getTypeParameters().get(i), modification);
         }
         return new InterleavedBlock(innerBlocks);
     }

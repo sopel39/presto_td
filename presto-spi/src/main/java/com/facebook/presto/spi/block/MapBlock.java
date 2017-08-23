@@ -182,19 +182,32 @@ public class MapBlock
         if (keyBlock.getPositionCount() != valueBlock.getPositionCount()) {
             throw new IllegalArgumentException(format("keyBlock position count does not match valueBlock position count. %s %s", keyBlock.getPositionCount(), valueBlock.getPositionCount()));
         }
-        int elementCount = keyBlock.getPositionCount();
         if (mapIsNull.length != offsets.length - 1) {
             throw new IllegalArgumentException(format("mapIsNull.length-1 does not match offsets.length. %s %s", mapIsNull.length - 1, offsets.length));
         }
-        if (offsets[elementCount] != elementCount) {
+
+        int nullCount = 0;
+        for (int i = 0; i < mapIsNull.length; ++i) {
+            if (mapIsNull[i]) {
+                nullCount++;
+            }
+        }
+
+        int notNullElementsCount = keyBlock.getPositionCount();
+        int elementCount = keyBlock.getPositionCount() + nullCount;
+
+        if (offsets[elementCount] != notNullElementsCount) {
             throw new IllegalArgumentException(format("Last element of offsets does not match keyBlock position count. %s %s", offsets[elementCount], keyBlock.getPositionCount()));
         }
-        int[] hashTables = new int[elementCount * HASH_MULTIPLIER];
+        int[] hashTables = new int[notNullElementsCount * HASH_MULTIPLIER];
         Arrays.fill(hashTables, -1);
         for (int i = 0; i < elementCount; i++) {
+            if (mapIsNull[i]) {
+                continue;
+            }
             int keyOffset = offsets[i];
             int keyCount = offsets[i + 1] - keyOffset;
-            if (keyCount < 0) {
+            if (keyCount <= 0) {
                 throw new IllegalArgumentException(format("Offset is not monotonically ascending. offsets[%s]=%s, offsets[%s]=%s", i, offsets[i], i + 1, offsets[i + 1]));
             }
             buildHashTable(keyBlock, keyOffset, keyCount, keyBlockHashCode, hashTables, keyOffset * HASH_MULTIPLIER, keyCount * HASH_MULTIPLIER);
