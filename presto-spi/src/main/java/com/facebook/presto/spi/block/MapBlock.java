@@ -193,8 +193,8 @@ public class MapBlock
             }
         }
 
-        int notNullElementsCount = keyBlock.getPositionCount();
-        int elementCount = keyBlock.getPositionCount() + nullCount;
+        int elementCount = Arrays.stream(offsets).reduce(Integer::max).orElse(0);
+        int notNullElementsCount = elementCount - nullCount;
 
         if (offsets[elementCount] != notNullElementsCount) {
             throw new IllegalArgumentException(format("Last element of offsets does not match keyBlock position count. %s %s", offsets[elementCount], keyBlock.getPositionCount()));

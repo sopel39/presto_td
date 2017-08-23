@@ -219,13 +219,7 @@ public abstract class AbstractInterleavedBlock
         int positionInBlock = position / columns;
 
         // return the underlying block directly, as it is unnecessary to wrap around it if there's only one block
-        try {
-            return getBlock(blockIndex).getSingleValueBlock(positionInBlock);
-        }
-        catch (IllegalArgumentException iae)
-        {
-            return null;
-        }
+        return getBlock(blockIndex).getSingleValueBlock(positionInBlock);
     }
 
     @Override
