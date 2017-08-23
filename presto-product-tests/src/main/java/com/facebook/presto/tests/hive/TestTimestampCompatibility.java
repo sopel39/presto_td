@@ -146,9 +146,9 @@ public class TestTimestampCompatibility
                 TIMESTAMP_LITERAL));
 
         QueryResult prestoResult = query(String.format("SELECT ts[1], ts[2], ts[3] FROM %s", TABLE_NAME));
-        QueryResult hiveResult = onHive().executeQuery(String.format("SELECT ts[0], ts[2], ts[3] FROM %s", TABLE_NAME));
-        assertThat(hiveResult).containsExactly(row(EXPECTED_TIMESTAMP, null, EXPECTED_TIMESTAMP));
+        QueryResult hiveResult = onHive().executeQuery(String.format("SELECT ts[0], ts[1], ts[2] FROM %s", TABLE_NAME));
         assertThat(prestoResult).containsExactly(row(EXPECTED_TIMESTAMP, null, EXPECTED_TIMESTAMP));
+        assertThat(hiveResult).containsExactly(row(EXPECTED_TIMESTAMP, null, EXPECTED_TIMESTAMP));
 
         resetSessionProperty(connection, "legacy_timestamp");
     }
@@ -322,7 +322,7 @@ public class TestTimestampCompatibility
                         "SELECT * FROM " +
                         "(VALUES" +
                         "   (map(ARRAY[TIMESTAMP '%s'], ARRAY[TIMESTAMP '%s']))," +
-                        "   (CAST(NULL AS MAP<TIMESTAMP, TIMESTAMP>))," +
+                        "   (NULL)," +
                         "   (map(ARRAY[TIMESTAMP '%s'], ARRAY[TIMESTAMP '%s']))) tst(ts)",
                 TABLE_NAME, storageFormat,
                 TIMESTAMP_LITERAL, TIMESTAMP_LITERAL, TIMESTAMP_LITERAL, TIMESTAMP_LITERAL));
