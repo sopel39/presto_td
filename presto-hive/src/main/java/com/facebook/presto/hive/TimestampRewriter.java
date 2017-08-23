@@ -238,7 +238,7 @@ public class TimestampRewriter
         }
 
         AbstractSingleRowBlock singleRowBlock = (AbstractSingleRowBlock) block;
-        Block innerBlocks[] = new Block[type.getTypeParameters().size()];
+        Block[] innerBlocks = new Block[type.getTypeParameters().size()];
         for (int i = 0; i < type.getTypeParameters().size(); ++i) {
             if (singleRowBlock.isNull(i)) {
                 innerBlocks[i] = null;
