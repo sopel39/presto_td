@@ -329,8 +329,8 @@ public class TestTimestampCompatibility
 
         QueryResult prestoResult = query(String.format("SELECT CASE WHEN ts IS NULL THEN NULL ELSE ts[TIMESTAMP '%s'] END FROM %s", TIMESTAMP_LITERAL, TABLE_NAME));
         QueryResult hiveResult = onHive().executeQuery(String.format("SELECT CASE WHEN ts IS NULL THEN NULL ELSE ts[TIMESTAMP '%s'] END FROM %s", TIMESTAMP_LITERAL, TABLE_NAME));
-        assertThat(hiveResult).containsExactly(row(EXPECTED_TIMESTAMP), row(null), row(EXPECTED_TIMESTAMP));
-        assertThat(prestoResult).containsExactly(row(EXPECTED_TIMESTAMP), row(null), row(EXPECTED_TIMESTAMP));
+        assertThat(hiveResult).containsExactly(row(EXPECTED_TIMESTAMP), signeNullRow(), row(EXPECTED_TIMESTAMP));
+        assertThat(prestoResult).containsExactly(row(EXPECTED_TIMESTAMP), signeNullRow(), row(EXPECTED_TIMESTAMP));
 
         resetSessionProperty(connection, "legacy_timestamp");
     }
