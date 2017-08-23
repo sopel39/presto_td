@@ -205,10 +205,10 @@ public class TimestampRewriter
             return null;
         }
 
-        if (block instanceof AbstractArrayBlock && ((AbstractArrayBlock)block).getValues() instanceof AbstractInterleavedBlock) {
+        if (block instanceof AbstractArrayBlock && ((AbstractArrayBlock) block).getValues() instanceof AbstractInterleavedBlock) {
             AbstractArrayBlock arrayBlock = (AbstractArrayBlock) block;
             AbstractInterleavedBlock columnBlocks = (AbstractInterleavedBlock) arrayBlock.getValues();
-            Block innerBlocks[] = new Block[type.getTypeParameters().size()];
+            Block[] innerBlocks = new Block[type.getTypeParameters().size()];
             for (int i = 0; i < type.getTypeParameters().size(); ++i) {
                 Type paramType = type.getTypeParameters().get(i);
                 innerBlocks[i] = wrapBlockInLazyTimestampRewritingBlock(columnBlocks.getBlock(i), paramType, modification);
@@ -238,7 +238,7 @@ public class TimestampRewriter
         }
 
         AbstractInterleavedBlock interleavedBlock = (AbstractInterleavedBlock) block;
-        Block innerBlocks[] = new Block[type.getTypeParameters().size()];
+        Block[] innerBlocks = new Block[type.getTypeParameters().size()];
         for (int i = 0; i < type.getTypeParameters().size(); ++i) {
             innerBlocks[i] = wrapBlockInLazyTimestampRewritingBlock(interleavedBlock.getSingleValueBlock(i), type.getTypeParameters().get(i), modification);
         }
