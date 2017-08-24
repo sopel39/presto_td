@@ -169,6 +169,7 @@ public class MapBlock
     }
 
     public static MapBlock fromKeyValueBlock(
+            int rowCount,
             boolean[] mapIsNull,
             int[] offsets,
             Block keyBlock,
@@ -192,15 +193,15 @@ public class MapBlock
             }
         }
 
-        int elementCount = Arrays.stream(offsets).reduce(Integer::max).orElse(0);
-        int notNullElementsCount = elementCount - nullCount;
+        int notNullElementsCount = keyBlock.getPositionCount();
+        int elementCount = nullCount + notNullElementsCount;
 
-        if (offsets[elementCount] != notNullElementsCount) {
-            throw new IllegalArgumentException(format("Last element of offsets does not match keyBlock position count. %s %s", offsets[elementCount], keyBlock.getPositionCount()));
+        if (offsets[rowCount] != notNullElementsCount) {
+            throw new IllegalArgumentException(format("Last element of offsets does not match keyBlock position count. %s %s", offsets[rowCount], notNullElementsCount));
         }
         int[] hashTables = new int[notNullElementsCount * HASH_MULTIPLIER];
         Arrays.fill(hashTables, -1);
-        for (int i = 0; i < elementCount; i++) {
+        for (int i = 0; i < rowCount; i++) {
             if (mapIsNull[i]) {
                 continue;
             }
@@ -214,7 +215,7 @@ public class MapBlock
 
         return new MapBlock(
                 0,
-                elementCount,
+                rowCount,
                 mapIsNull,
                 offsets,
                 keyBlock,

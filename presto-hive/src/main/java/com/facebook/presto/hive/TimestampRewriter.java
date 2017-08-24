@@ -164,7 +164,7 @@ public class TimestampRewriter
             Block innerKeyBlock = wrapBlockInLazyTimestampRewritingBlock(mapBlock.getKeys(), keyType, modification);
             Block innerValueBlock = wrapBlockInLazyTimestampRewritingBlock(mapBlock.getValues(), valueType, modification);
 
-            return mapType.createBlockFromKeyValue(mapBlock.getMapIsNull(), mapBlock.getOffsets(), innerKeyBlock, innerValueBlock);
+            return mapType.createBlockFromKeyValue(mapBlock.getPositionCount(), mapBlock.getMapIsNull(), mapBlock.getOffsets(), innerKeyBlock, innerValueBlock);
         }
         else {
             BlockBuilder builder = type.createBlockBuilder(new BlockBuilderStatus(), block.getPositionCount());
