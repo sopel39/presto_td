@@ -45,10 +45,25 @@ public final class TestingTaskContext
                 .build();
     }
 
+    public static TaskContext createTaskContext(Executor executor, Session session, TaskStateMachine taskStateMachine)
+    {
+        return builder(executor, session, taskStateMachine)
+                .build();
+    }
+
     public static TaskContext createTaskContext(QueryContext queryContext, Executor executor, Session session)
     {
         return queryContext.addTaskContext(
                 new TaskStateMachine(new TaskId("query", 0, 0), executor),
+                session,
+                true,
+                true);
+    }
+
+    private static TaskContext createTaskContext(QueryContext queryContext, Session session, TaskStateMachine taskStateMachine)
+    {
+        return queryContext.addTaskContext(
+                taskStateMachine,
                 session,
                 true,
                 true);
@@ -59,10 +74,16 @@ public final class TestingTaskContext
         return new Builder(executor, session);
     }
 
+    public static Builder builder(Executor executor, Session session, TaskStateMachine taskStateMachine)
+    {
+        return new Builder(executor, session, taskStateMachine);
+    }
+
     public static class Builder
     {
         private final Executor executor;
         private final Session session;
+        private TaskStateMachine taskStateMachine;
         private DataSize queryMaxMemory = new DataSize(256, MEGABYTE);
         private DataSize memoryPoolSize = new DataSize(1, GIGABYTE);
         private DataSize systemMemoryPoolSize = new DataSize(1, GIGABYTE);
@@ -73,6 +94,13 @@ public final class TestingTaskContext
         {
             this.executor = executor;
             this.session = session;
+        }
+
+        public Builder(Executor executor, Session session, TaskStateMachine taskStateMachine)
+        {
+            this.executor = executor;
+            this.session = session;
+            this.taskStateMachine = taskStateMachine;
         }
 
         public Builder setQueryMaxMemory(DataSize queryMaxMemory)
@@ -119,7 +147,12 @@ public final class TestingTaskContext
                     queryMaxSpillSize,
                     spillSpaceTracker);
 
-            return createTaskContext(queryContext, executor, session);
+            if (taskStateMachine == null) {
+                return createTaskContext(queryContext, executor, session);
+            }
+            else {
+                return createTaskContext(queryContext, session, taskStateMachine);
+            }
         }
     }
 }
