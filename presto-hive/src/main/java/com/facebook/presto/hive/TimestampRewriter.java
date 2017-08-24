@@ -79,7 +79,7 @@ public class TimestampRewriter
             blocks[i] = wrapBlockInLazyTimestampRewritingBlock(page.getBlock(i), columnTypes.get(i), modification);
         }
 
-        return new Page(blocks);
+        return new Page(page.getPositionCount(), blocks);
     }
 
     private Block wrapBlockInLazyTimestampRewritingBlock(Block block, Type type, LongUnaryOperator modification)
