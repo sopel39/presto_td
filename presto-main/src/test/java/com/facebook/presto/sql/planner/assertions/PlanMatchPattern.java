@@ -59,6 +59,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
@@ -70,6 +71,7 @@ import static com.facebook.presto.sql.planner.assertions.StrictSymbolsMatcher.ac
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Collections.nCopies;
 import static java.util.Objects.requireNonNull;
 
@@ -181,14 +183,15 @@ public final class PlanMatchPattern
     }
 
     public static PlanMatchPattern aggregation(
-            List<List<String>> groupingSets,
+            List<Set<String>> groupingSets,
             Map<Optional<String>, ExpectedValueProvider<FunctionCall>> aggregations,
             Map<Symbol, Symbol> masks,
             Optional<Symbol> groupId,
             Step step,
             PlanMatchPattern source)
     {
-        PlanMatchPattern result = node(AggregationNode.class, source).with(new AggregationMatcher(groupingSets, masks, groupId, step));
+        PlanMatchPattern result = node(AggregationNode.class, source)
+                .with(new AggregationMatcher(toAliasSetList(groupingSets), masks, groupId, step));
         aggregations.entrySet().forEach(
                 aggregation -> result.withAlias(aggregation.getKey(), new AggregationFunctionMatcher(aggregation.getValue())));
         return result;
@@ -372,9 +375,10 @@ public final class PlanMatchPattern
                 .with(new CorrelationMatcher(correlationSymbolAliases));
     }
 
-    public static PlanMatchPattern groupingSet(List<List<String>> groups, String groupIdAlias, PlanMatchPattern source)
+    public static PlanMatchPattern groupingSet(List<Set<String>> groups, String groupIdAlias, PlanMatchPattern source)
     {
-        return node(GroupIdNode.class, source).with(new GroupIdMatcher(groups, ImmutableMap.of(), groupIdAlias));
+        return node(GroupIdNode.class, source)
+                .with(new GroupIdMatcher(toAliasSetList(groups), ImmutableMap.of(), new SymbolAlias(groupIdAlias)));
     }
 
     private static PlanMatchPattern values(
@@ -621,18 +625,33 @@ public final class PlanMatchPattern
             Map<String, SortOrder> orderings)
     {
         return new SpecificationProvider(
-                partitionBy
-                        .stream()
-                        .map(SymbolAlias::new)
-                        .collect(toImmutableList()),
-                orderBy
-                        .stream()
-                        .map(SymbolAlias::new)
-                        .collect(toImmutableList()),
+                toAliasList(partitionBy),
+                toAliasList(orderBy),
                 orderings
                         .entrySet()
                         .stream()
                         .collect(toImmutableMap(entry -> new SymbolAlias(entry.getKey()), Map.Entry::getValue)));
+    }
+
+    public static List<SymbolAlias> toAliasList(List<String> stringList)
+    {
+        return stringList.stream()
+                .map(SymbolAlias::new)
+                .collect(toImmutableList());
+    }
+
+    public static Set<SymbolAlias> toAliasSet(Set<String> stringList)
+    {
+        return stringList.stream()
+                .map(SymbolAlias::new)
+                .collect(toImmutableSet());
+    }
+
+    public static List<Set<SymbolAlias>> toAliasSetList(List<Set<String>> stringListList)
+    {
+        return stringListList.stream()
+                .map(PlanMatchPattern::toAliasSet)
+                .collect(toImmutableList());
     }
 
     @Override

@@ -20,6 +20,7 @@ import com.facebook.presto.sql.planner.plan.Assignments;
 import com.facebook.presto.sql.planner.plan.ProjectNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 
 import java.util.Optional;
@@ -47,7 +48,7 @@ public class TestPruneAggregationColumns
                         strictProject(
                                 ImmutableMap.of("b", expression("b")),
                                 aggregation(
-                                        ImmutableList.of(ImmutableList.of("key")),
+                                        ImmutableList.of(ImmutableSet.of("key")),
                                         ImmutableMap.of(
                                                 Optional.of("b"),
                                                 functionCall("count", false, ImmutableList.of())),

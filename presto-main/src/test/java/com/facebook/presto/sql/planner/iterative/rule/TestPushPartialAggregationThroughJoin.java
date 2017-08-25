@@ -18,6 +18,7 @@ import com.facebook.presto.sql.planner.iterative.rule.test.BaseRuleTest;
 import com.facebook.presto.sql.planner.plan.JoinNode.EquiJoinClause;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 
 import java.util.Optional;
@@ -63,7 +64,7 @@ public class TestPushPartialAggregationThroughJoin
                         join(INNER, ImmutableList.of(equiJoinClause("LEFT_EQUI", "RIGHT_EQUI")),
                                 Optional.of("LEFT_NON_EQUI <= RIGHT_NON_EQUI"),
                                 aggregation(
-                                        ImmutableList.of(ImmutableList.of("LEFT_EQUI", "LEFT_NON_EQUI", "LEFT_GROUP_BY", "LEFT_HASH")),
+                                        ImmutableList.of(ImmutableSet.of("LEFT_EQUI", "LEFT_NON_EQUI", "LEFT_GROUP_BY", "LEFT_HASH")),
                                         ImmutableMap.of(Optional.of("AVG"), functionCall("avg", ImmutableList.of("LEFT_AGGR"))),
                                         ImmutableMap.of(),
                                         Optional.empty(),

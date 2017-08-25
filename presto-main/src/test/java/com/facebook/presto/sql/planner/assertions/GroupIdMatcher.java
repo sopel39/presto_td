@@ -19,23 +19,28 @@ import com.facebook.presto.metadata.Metadata;
 import com.facebook.presto.sql.planner.Symbol;
 import com.facebook.presto.sql.planner.plan.GroupIdNode;
 import com.facebook.presto.sql.planner.plan.PlanNode;
+import com.google.common.collect.ImmutableSet;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.facebook.presto.sql.planner.assertions.MatchResult.NO_MATCH;
 import static com.facebook.presto.sql.planner.assertions.MatchResult.match;
+import static com.facebook.presto.sql.planner.assertions.SymbolAliasUtil.aliasAliasMapMatches;
+import static com.facebook.presto.sql.planner.assertions.SymbolAliasUtil.aliasSetListMatches;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class GroupIdMatcher
         implements Matcher
 {
-    private final List<List<String>> groups;
-    private final Map<String, String> identityMappings;
-    private final String groupIdAlias;
+    private final List<Set<SymbolAlias>> groups;
+    private final Map<SymbolAlias, SymbolAlias> identityMappings;
+    private final SymbolAlias groupIdAlias;
 
-    public GroupIdMatcher(List<List<String>> groups, Map<String, String> identityMappings, String groupIdAlias)
+    public GroupIdMatcher(List<Set<SymbolAlias>> groups, Map<SymbolAlias, SymbolAlias> identityMappings, SymbolAlias groupIdAlias)
     {
         this.groups = groups;
         this.identityMappings = identityMappings;
@@ -57,21 +62,20 @@ public class GroupIdMatcher
         List<List<Symbol>> actualGroups = groudIdNode.getGroupingSets();
         Map<Symbol, Symbol> actualArgumentMappings = groudIdNode.getArgumentMappings();
 
-        if (actualGroups.size() != groups.size()) {
+        if (!aliasSetListMatches(
+                groups,
+                actualGroups.stream()
+                        .map(ImmutableSet::copyOf)
+                        .collect(toImmutableList()),
+                symbolAliases)) {
             return NO_MATCH;
         }
 
-        for (int i = 0; i < actualGroups.size(); i++) {
-            if (!AggregationMatcher.matches(groups.get(i), actualGroups.get(i), symbolAliases)) {
-                return NO_MATCH;
-            }
-        }
-
-        if (!AggregationMatcher.matches(identityMappings.keySet(), actualArgumentMappings.keySet(), symbolAliases)) {
+        if (!aliasAliasMapMatches(identityMappings, actualArgumentMappings, symbolAliases)) {
             return NO_MATCH;
         }
 
-        return match(groupIdAlias, groudIdNode.getGroupIdSymbol().toSymbolReference());
+        return match(groupIdAlias.toString(), groudIdNode.getGroupIdSymbol().toSymbolReference());
     }
 
     @Override

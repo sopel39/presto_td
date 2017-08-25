@@ -36,6 +36,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import static com.facebook.presto.sql.planner.assertions.PlanMatchPattern.aggregation;
 import static com.facebook.presto.sql.planner.assertions.PlanMatchPattern.anySymbol;
@@ -89,22 +90,22 @@ public class TestMixedDistinctAggregationOptimizer
         String distinctAggregation = "ORDERDATE";
 
         // Second Aggregation data
-        List<String> groupByKeysSecond = ImmutableList.of(groupBy);
+        Set<String> groupByKeysSecond = ImmutableSet.of(groupBy);
         Map<Optional<String>, ExpectedValueProvider<FunctionCall>> aggregationsSecond = ImmutableMap.of(
                 Optional.of("arbitrary"), PlanMatchPattern.functionCall("arbitrary", false, ImmutableList.of(anySymbol())),
                 Optional.of("count"), PlanMatchPattern.functionCall("count", false, ImmutableList.of(anySymbol())));
 
         // First Aggregation data
-        List<String> groupByKeysFirst = ImmutableList.of(groupBy, distinctAggregation, group);
+        Set<String> groupByKeysFirst = ImmutableSet.of(groupBy, distinctAggregation, group);
         Map<Optional<String>, ExpectedValueProvider<FunctionCall>> aggregationsFirst = ImmutableMap.of(
                 Optional.of("MAX"), functionCall("max", ImmutableList.of("TOTALPRICE")));
 
         PlanMatchPattern tableScan = tableScan("orders", ImmutableMap.of("TOTALPRICE", "totalprice", "CUSTKEY", "custkey", "ORDERDATE", "orderdate"));
 
         // GroupingSet symbols
-        ImmutableList.Builder<List<String>> groups = ImmutableList.builder();
-        groups.add(ImmutableList.of(groupBy, aggregate));
-        groups.add(ImmutableList.of(groupBy, distinctAggregation));
+        ImmutableList.Builder<Set<String>> groups = ImmutableList.builder();
+        groups.add(ImmutableSet.of(groupBy, aggregate));
+        groups.add(ImmutableSet.of(groupBy, distinctAggregation));
         PlanMatchPattern expectedPlanPattern = anyTree(
                 aggregation(ImmutableList.of(groupByKeysSecond), aggregationsSecond, ImmutableMap.of(), Optional.empty(), SINGLE,
                         project(

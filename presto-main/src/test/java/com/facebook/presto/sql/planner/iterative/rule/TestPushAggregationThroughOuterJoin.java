@@ -20,6 +20,7 @@ import com.facebook.presto.sql.planner.iterative.rule.test.PlanBuilder;
 import com.facebook.presto.sql.planner.plan.JoinNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 
 import java.util.Optional;
@@ -63,14 +64,14 @@ public class TestPushAggregationThroughOuterJoin
                                         join(JoinNode.Type.LEFT, ImmutableList.of(equiJoinClause("COL1", "COL2")),
                                                 values(ImmutableMap.of("COL1", 0)),
                                                 aggregation(
-                                                        ImmutableList.of(ImmutableList.of("COL2")),
+                                                        ImmutableList.of(ImmutableSet.of("COL2")),
                                                         ImmutableMap.of(Optional.of("AVG"), functionCall("avg", ImmutableList.of("COL2"))),
                                                         ImmutableMap.of(),
                                                         Optional.empty(),
                                                         SINGLE,
                                                         values(ImmutableMap.of("COL2", 0)))),
                                         aggregation(
-                                                ImmutableList.of(ImmutableList.of()),
+                                                ImmutableList.of(ImmutableSet.of()),
                                                 ImmutableMap.of(Optional.of("AVG_NULL"), functionCall("avg", ImmutableList.of("null_literal"))),
                                                 ImmutableMap.of(),
                                                 Optional.empty(),
@@ -101,7 +102,7 @@ public class TestPushAggregationThroughOuterJoin
                                 join(JoinNode.Type.INNER, ImmutableList.of(),
                                         join(JoinNode.Type.RIGHT, ImmutableList.of(equiJoinClause("COL2", "COL1")),
                                                 aggregation(
-                                                        ImmutableList.of(ImmutableList.of("COL2")),
+                                                        ImmutableList.of(ImmutableSet.of("COL2")),
                                                         ImmutableMap.of(Optional.of("AVG"), functionCall("avg", ImmutableList.of("COL2"))),
                                                         ImmutableMap.of(),
                                                         Optional.empty(),
@@ -109,7 +110,7 @@ public class TestPushAggregationThroughOuterJoin
                                                         values(ImmutableMap.of("COL2", 0))),
                                                 values(ImmutableMap.of("COL1", 0))),
                                         aggregation(
-                                                ImmutableList.of(ImmutableList.of()),
+                                                ImmutableList.of(ImmutableSet.of()),
                                                 ImmutableMap.of(
                                                         Optional.of("AVG_NULL"), functionCall("avg", ImmutableList.of("null_literal"))),
                                                 ImmutableMap.of(),

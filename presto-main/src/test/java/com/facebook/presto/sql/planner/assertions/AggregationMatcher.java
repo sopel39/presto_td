@@ -20,15 +20,17 @@ import com.facebook.presto.sql.planner.Symbol;
 import com.facebook.presto.sql.planner.plan.AggregationNode;
 import com.facebook.presto.sql.planner.plan.AggregationNode.Step;
 import com.facebook.presto.sql.planner.plan.PlanNode;
+import com.google.common.collect.ImmutableSet;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.facebook.presto.sql.planner.assertions.MatchResult.NO_MATCH;
 import static com.facebook.presto.sql.planner.assertions.MatchResult.match;
+import static com.facebook.presto.sql.planner.assertions.SymbolAliasUtil.aliasSetListMatches;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -37,11 +39,11 @@ public class AggregationMatcher
         implements Matcher
 {
     private final Map<Symbol, Symbol> masks;
-    private final List<List<String>> groupingSets;
+    private final List<Set<SymbolAlias>> groupingSets;
     private final Optional<Symbol> groupId;
     private final Step step;
 
-    public AggregationMatcher(List<List<String>> groupingSets, Map<Symbol, Symbol> masks, Optional<Symbol> groupId, Step step)
+    public AggregationMatcher(List<Set<SymbolAlias>> groupingSets, Map<Symbol, Symbol> masks, Optional<Symbol> groupId, Step step)
     {
         this.masks = masks;
         this.groupingSets = groupingSets;
@@ -65,7 +67,12 @@ public class AggregationMatcher
             return NO_MATCH;
         }
 
-        if (groupingSets.size() != aggregationNode.getGroupingSets().size()) {
+        if (!aliasSetListMatches(
+                groupingSets,
+                aggregationNode.getGroupingSets().stream()
+                        .map(ImmutableSet::copyOf)
+                        .collect(toImmutableList()),
+                symbolAliases)) {
             return NO_MATCH;
         }
 
@@ -86,35 +93,11 @@ public class AggregationMatcher
             }
         }
 
-        for (int i = 0; i < groupingSets.size(); i++) {
-            if (!matches(groupingSets.get(i), aggregationNode.getGroupingSets().get(i), symbolAliases)) {
-                return NO_MATCH;
-            }
-        }
-
         if (step != aggregationNode.getStep()) {
             return NO_MATCH;
         }
 
         return match();
-    }
-
-    static boolean matches(Collection<String> expectedAliases, Collection<Symbol> actualSymbols, SymbolAliases symbolAliases)
-    {
-        if (expectedAliases.size() != actualSymbols.size()) {
-            return false;
-        }
-
-        List<Symbol> expectedSymbols = expectedAliases
-                .stream()
-                .map(alias -> new Symbol(symbolAliases.get(alias).getName()))
-                .collect(toImmutableList());
-        for (Symbol symbol : expectedSymbols) {
-            if (!actualSymbols.contains(symbol)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override

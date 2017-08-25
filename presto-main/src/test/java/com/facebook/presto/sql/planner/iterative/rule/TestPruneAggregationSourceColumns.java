@@ -19,6 +19,7 @@ import com.facebook.presto.sql.planner.iterative.rule.test.PlanBuilder;
 import com.facebook.presto.sql.planner.plan.AggregationNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public class TestPruneAggregationSourceColumns
                 .on(p -> buildAggregation(p, alwaysTrue()))
                 .matches(
                         aggregation(
-                                ImmutableList.of(ImmutableList.of("key")),
+                                ImmutableList.of(ImmutableSet.of("key")),
                                 ImmutableMap.of(
                                         Optional.of("avg"),
                                         functionCall("avg", ImmutableList.of("input"))),
