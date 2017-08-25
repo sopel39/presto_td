@@ -72,7 +72,6 @@ import static com.facebook.presto.bytecode.expression.BytecodeExpressions.consta
 import static com.facebook.presto.bytecode.expression.BytecodeExpressions.constantLong;
 import static com.facebook.presto.bytecode.expression.BytecodeExpressions.newInstance;
 import static com.facebook.presto.sql.gen.SqlTypeBytecodeExpression.constantType;
-import static com.facebook.presto.util.Optionals.toOptionalInt;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 
 public class JoinProbeCompiler
@@ -128,7 +127,7 @@ public class JoinProbeCompiler
                     joinType,
                     totalOperatorsCount,
                     probeJoinChannel,
-                    toOptionalInt(probeHashChannel),
+                    probeHashChannel.map(OptionalInt::of).orElse(OptionalInt.empty()),
                     partitioningSpillerFactory);
         }
         catch (ExecutionException | UncheckedExecutionException | ExecutionError e) {
