@@ -18,6 +18,7 @@ import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.security.ConnectorIdentity;
 import com.facebook.presto.spi.type.TimeZoneKey;
 import com.facebook.presto.spi.type.Type;
+import com.google.common.collect.ImmutableList;
 import io.airlift.slice.DynamicSliceOutput;
 import org.testng.annotations.Test;
 
@@ -92,6 +93,12 @@ public class TestVariableWidthBlockEncoding
         blockEncoding.writeBlock(sliceOutput, expectedBlock);
         Block actualBlock = blockEncoding.readBlock(sliceOutput.slice().getInput());
         assertBlockEquals(VARCHAR, actualBlock, expectedBlock);
+
+        sliceOutput = new DynamicSliceOutput(1024);
+        blockEncoding = new VariableWidthBlockEncoding();
+        blockEncoding.getSelectedPositionsEncoder().get().writeBlock(sliceOutput, expectedBlock, new int[] {1, 3}, 0, 2);
+        actualBlock = blockEncoding.readBlock(sliceOutput.slice().getInput());
+        assertBlockEquals(VARCHAR, actualBlock, expectedBlock.copyPositions(ImmutableList.of(1, 3)));
     }
 
     private static void assertBlockEquals(Type type, Block actual, Block expected)

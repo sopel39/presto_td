@@ -19,6 +19,9 @@ import io.airlift.slice.SliceInput;
 import io.airlift.slice.SliceOutput;
 import io.airlift.slice.Slices;
 
+import java.util.Optional;
+
+import static com.facebook.presto.spi.block.BlockUtil.checkValidPositionsArray;
 import static com.facebook.presto.spi.block.EncoderUtil.decodeNullBits;
 import static com.facebook.presto.spi.block.EncoderUtil.encodeNullsAsBits;
 import static io.airlift.slice.SizeOf.SIZE_OF_INT;
@@ -57,6 +60,35 @@ public class VariableWidthBlockEncoding
         sliceOutput
                 .appendInt(totalLength)
                 .writeBytes(variableWidthBlock.getRawSlice(0), variableWidthBlock.getPositionOffset(0), totalLength);
+    }
+
+    @Override
+    public Optional<SelectedPositionsEncoder> getSelectedPositionsEncoder()
+    {
+        return Optional.of((sliceOutput, block, positions, offset, length) -> {
+            checkValidPositionsArray(positions, offset, length);
+
+            // The down casts here are safe because it is the block itself the provides this encoding implementation.
+            AbstractVariableWidthBlock variableWidthBlock = (AbstractVariableWidthBlock) block;
+
+            sliceOutput.appendInt(length);
+
+            // offsets
+            int totalLength = 0;
+            for (int positionWithOffset = offset; positionWithOffset < offset + length; positionWithOffset++) {
+                int positionLength = variableWidthBlock.getSliceLength(positions[positionWithOffset]);
+                totalLength += positionLength;
+                sliceOutput.appendInt(totalLength);
+            }
+
+            encodeNullsAsBits(sliceOutput, variableWidthBlock, positions, offset, length);
+
+            sliceOutput.appendInt(totalLength);
+            for (int positionWithOffset = offset; positionWithOffset < offset + length; positionWithOffset++) {
+                int basePosition = positions[positionWithOffset];
+                sliceOutput.writeBytes(variableWidthBlock.getRawSlice(basePosition), variableWidthBlock.getPositionOffset(basePosition), variableWidthBlock.getSliceLength(basePosition));
+            }
+        });
     }
 
     @Override

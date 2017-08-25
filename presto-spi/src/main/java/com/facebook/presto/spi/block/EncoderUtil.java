@@ -54,6 +54,35 @@ final class EncoderUtil
         }
     }
 
+    @SuppressWarnings({"NarrowingCompoundAssignment", "ImplicitNumericConversion"})
+    public static void encodeNullsAsBits(SliceOutput sliceOutput, Block block, int[] positions, int offset, int length)
+    {
+        for (int position = 0; position < (length & ~0b111); position += 8) {
+            byte value = 0;
+            int positionWithOffset = offset + position;
+            value |= block.isNull(positions[positionWithOffset]) ? 0b1000_0000 : 0;
+            value |= block.isNull(positions[positionWithOffset + 1]) ? 0b0100_0000 : 0;
+            value |= block.isNull(positions[positionWithOffset + 2]) ? 0b0010_0000 : 0;
+            value |= block.isNull(positions[positionWithOffset + 3]) ? 0b0001_0000 : 0;
+            value |= block.isNull(positions[positionWithOffset + 4]) ? 0b0000_1000 : 0;
+            value |= block.isNull(positions[positionWithOffset + 5]) ? 0b0000_0100 : 0;
+            value |= block.isNull(positions[positionWithOffset + 6]) ? 0b0000_0010 : 0;
+            value |= block.isNull(positions[positionWithOffset + 7]) ? 0b0000_0001 : 0;
+            sliceOutput.appendByte(value);
+        }
+
+        // write last null bits
+        if ((length & 0b111) > 0) {
+            byte value = 0;
+            int mask = 0b1000_0000;
+            for (int position = length & ~0b111; position < length; position++) {
+                value |= block.isNull(positions[offset + position]) ? mask : 0;
+                mask >>>= 1;
+            }
+            sliceOutput.appendByte(value);
+        }
+    }
+
     /**
      * Decode the bit stream created by encodeNullsAsBits.
      */

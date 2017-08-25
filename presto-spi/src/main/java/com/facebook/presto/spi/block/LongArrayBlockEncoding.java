@@ -17,6 +17,9 @@ import com.facebook.presto.spi.type.TypeManager;
 import io.airlift.slice.SliceInput;
 import io.airlift.slice.SliceOutput;
 
+import java.util.Optional;
+
+import static com.facebook.presto.spi.block.BlockUtil.checkValidPositionsArray;
 import static com.facebook.presto.spi.block.EncoderUtil.decodeNullBits;
 import static com.facebook.presto.spi.block.EncoderUtil.encodeNullsAsBits;
 
@@ -45,6 +48,25 @@ public class LongArrayBlockEncoding
                 sliceOutput.writeLong(block.getLong(position, 0));
             }
         }
+    }
+
+    @Override
+    public Optional<SelectedPositionsEncoder> getSelectedPositionsEncoder()
+    {
+        return Optional.of((sliceOutput, block, positions, offset, length) -> {
+            checkValidPositionsArray(positions, offset, length);
+
+            sliceOutput.appendInt(length);
+
+            encodeNullsAsBits(sliceOutput, block, positions, offset, length);
+
+            for (int positionWithOffset = offset; positionWithOffset < offset + length; positionWithOffset++) {
+                int basePosition = positions[positionWithOffset];
+                if (!block.isNull(basePosition)) {
+                    sliceOutput.writeLong(block.getLong(basePosition, 0));
+                }
+            }
+        });
     }
 
     @Override
