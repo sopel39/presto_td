@@ -71,7 +71,7 @@ public class GenericPartitioningSpiller
     {
         requireNonNull(spillContext, "spillContext is null");
 
-        this.types = requireNonNull(types, "types is null");
+        this.types = ImmutableList.copyOf(requireNonNull(types, "types is null"));
         this.partitionFunction = requireNonNull(partitionFunction, "partitionFunction is null");
         this.spillerFactory = requireNonNull(spillerFactory, "spillerFactory is null");
         this.spillContext = closer.register(requireNonNull(spillContext, "spillContext is null"));
