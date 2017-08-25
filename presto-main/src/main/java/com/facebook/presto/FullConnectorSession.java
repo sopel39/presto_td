@@ -42,6 +42,7 @@ public class FullConnectorSession
     private final String catalog;
     private final SessionPropertyManager sessionPropertyManager;
     private final boolean isLegacyTimestamp;
+    private final boolean isUseMaskedBlock;
 
     public FullConnectorSession(
             String queryId,
@@ -49,7 +50,8 @@ public class FullConnectorSession
             TimeZoneKey timeZoneKey,
             Locale locale,
             long startTime,
-            boolean isLegacyTimestamp)
+            boolean isLegacyTimestamp,
+            boolean isUseMaskedBlock)
     {
         this.queryId = requireNonNull(queryId, "queryId is null");
         this.identity = requireNonNull(identity, "identity is null");
@@ -62,6 +64,7 @@ public class FullConnectorSession
         this.catalog = null;
         this.sessionPropertyManager = null;
         this.isLegacyTimestamp = isLegacyTimestamp;
+        this.isUseMaskedBlock = isUseMaskedBlock;
     }
 
     public FullConnectorSession(
@@ -74,7 +77,8 @@ public class FullConnectorSession
             ConnectorId connectorId,
             String catalog,
             SessionPropertyManager sessionPropertyManager,
-            boolean isLegacyTimestamp)
+            boolean isLegacyTimestamp,
+            boolean isUseMaskedBlock)
     {
         this.queryId = requireNonNull(queryId, "queryId is null");
         this.identity = requireNonNull(identity, "identity is null");
@@ -87,6 +91,7 @@ public class FullConnectorSession
         this.catalog = requireNonNull(catalog, "catalog is null");
         this.sessionPropertyManager = requireNonNull(sessionPropertyManager, "sessionPropertyManager is null");
         this.isLegacyTimestamp = isLegacyTimestamp;
+        this.isUseMaskedBlock = isUseMaskedBlock;
     }
 
     @Override
@@ -123,6 +128,12 @@ public class FullConnectorSession
     public boolean isLegacyTimestamp()
     {
         return isLegacyTimestamp;
+    }
+
+    @Override
+    public boolean isUseMaskedBlock()
+    {
+        return isUseMaskedBlock;
     }
 
     @Override

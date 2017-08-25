@@ -38,5 +38,10 @@ public interface ConnectorSession
     @Deprecated
     boolean isLegacyTimestamp();
 
+    default boolean isUseMaskedBlock()
+    {
+        return false;
+    }
+
     <T> T getProperty(String name, Class<T> type);
 }

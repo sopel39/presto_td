@@ -83,6 +83,7 @@ public final class SystemSessionProperties
     public static final String PARSE_DECIMAL_LITERALS_AS_DOUBLE = "deprecated_parse_decimal_literals_as_double";
     public static final String DISTRIBUTED_SORT = "distributed_sort";
     public static final String REDISTRIBUTE_SORT = "redistribute_sort";
+    public static final String USE_MASKED_BLOCK = "use_masked_block";
 
     private final List<PropertyMetadata<?>> sessionProperties;
 
@@ -371,6 +372,11 @@ public final class SystemSessionProperties
                         REDISTRIBUTE_SORT,
                         "Force data redistribution before partial sort",
                         featuresConfig.isRedistributeSort(),
+                        false),
+                booleanSessionProperty(
+                        USE_MASKED_BLOCK,
+                        "Use masked block",
+                        false,
                         false));
     }
 
@@ -572,6 +578,11 @@ public final class SystemSessionProperties
     public static boolean isRedistributeSort(Session session)
     {
         return session.getSystemProperty(REDISTRIBUTE_SORT, Boolean.class);
+    }
+
+    public static boolean isUseMaskedBlock(Session session)
+    {
+        return session.getSystemProperty(USE_MASKED_BLOCK, Boolean.class);
     }
 
     public static JoinDistributionType getJoinDistributionType(Session session)
