@@ -44,6 +44,13 @@ public class MaskedBlockEncoding
     @Override
     public void writeBlock(SliceOutput sliceOutput, Block block)
     {
+        if (baseBlockEncoding.getSelectedPositionsEncoder().isPresent()) {
+            MaskedBlock maskedBlock = (MaskedBlock) block;
+            SelectedPositionsEncoder positionsEncoder = baseBlockEncoding.getSelectedPositionsEncoder().get();
+            positionsEncoder.writeBlock(sliceOutput, maskedBlock.getBaseBlock(), maskedBlock.getPositions(), maskedBlock.getOffset(), maskedBlock.getLength());
+            return;
+        }
+
         baseBlockEncoding.writeBlock(sliceOutput, block.copyRegion(0, block.getPositionCount()));
     }
 

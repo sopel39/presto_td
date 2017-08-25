@@ -246,4 +246,24 @@ public class MaskedBlock
 
         return positions[offset + position];
     }
+
+    public Block getBaseBlock()
+    {
+        return baseBlock;
+    }
+
+    public int[] getPositions()
+    {
+        return positions;
+    }
+
+    public int getOffset()
+    {
+        return offset;
+    }
+
+    public int getLength()
+    {
+        return length;
+    }
 }
