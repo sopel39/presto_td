@@ -18,6 +18,9 @@ import com.facebook.presto.spi.Page;
 import com.facebook.presto.spi.block.Block;
 import com.facebook.presto.spi.block.MaskedBlock;
 import com.facebook.presto.spi.type.Type;
+import com.google.common.primitives.Ints;
+
+import java.util.List;
 
 public class InputPageProjection
         implements PageProjection
@@ -53,8 +56,18 @@ public class InputPageProjection
     public Block project(ConnectorSession session, Page page, SelectedPositions selectedPositions)
     {
         Block block = page.getBlock(0);
+
+        if (session.isUseMaskedBlock()) {
+            if (selectedPositions.isList()) {
+                return new MaskedBlock(selectedPositions.getPositions(), selectedPositions.getOffset(), selectedPositions.size(), block);
+            }
+            return block.getRegion(selectedPositions.getOffset(), selectedPositions.size());
+        }
+
         if (selectedPositions.isList()) {
-            return new MaskedBlock(selectedPositions.getPositions(), selectedPositions.getOffset(), selectedPositions.size(), block);
+            List<Integer> positionList = Ints.asList(selectedPositions.getPositions())
+                    .subList(selectedPositions.getOffset(), selectedPositions.getOffset() + selectedPositions.size());
+            return block.copyPositions(positionList);
         }
         return block.getRegion(selectedPositions.getOffset(), selectedPositions.size());
     }
