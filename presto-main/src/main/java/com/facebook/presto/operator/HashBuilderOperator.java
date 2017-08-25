@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Queue;
 
 import static com.facebook.presto.operator.Operators.checkSuccess;
@@ -58,7 +59,7 @@ public class HashBuilderOperator
         private final PartitionedLookupSourceFactory lookupSourceFactory;
         private final List<Integer> outputChannels;
         private final List<Integer> hashChannels;
-        private final Optional<Integer> preComputedHashChannel;
+        private final OptionalInt preComputedHashChannel;
         private final Optional<JoinFilterFunctionFactory> filterFunctionFactory;
         private final PagesIndex.Factory pagesIndexFactory;
 
@@ -76,7 +77,7 @@ public class HashBuilderOperator
                 List<Integer> outputChannels,
                 Map<Symbol, Integer> layout,
                 List<Integer> hashChannels,
-                Optional<Integer> preComputedHashChannel,
+                OptionalInt preComputedHashChannel,
                 boolean outer,
                 Optional<JoinFilterFunctionFactory> filterFunctionFactory,
                 int expectedPositions,
@@ -106,7 +107,7 @@ public class HashBuilderOperator
                 List<Integer> outputChannels,
                 Map<Symbol, Integer> layout,
                 List<Integer> hashChannels,
-                Optional<Integer> preComputedHashChannel,
+                OptionalInt preComputedHashChannel,
                 boolean outer,
                 Optional<JoinFilterFunctionFactory> filterFunctionFactory,
                 int expectedPositions,
@@ -233,7 +234,7 @@ public class HashBuilderOperator
 
     private final List<Integer> outputChannels;
     private final List<Integer> hashChannels;
-    private final Optional<Integer> preComputedHashChannel;
+    private final OptionalInt preComputedHashChannel;
     private final Optional<JoinFilterFunctionFactory> filterFunctionFactory;
 
     private final PagesIndex index;
@@ -261,7 +262,7 @@ public class HashBuilderOperator
             int partitionIndex,
             List<Integer> outputChannels,
             List<Integer> hashChannels,
-            Optional<Integer> preComputedHashChannel,
+            OptionalInt preComputedHashChannel,
             Optional<JoinFilterFunctionFactory> filterFunctionFactory,
             int expectedPositions,
             PagesIndex.Factory pagesIndexFactory,
