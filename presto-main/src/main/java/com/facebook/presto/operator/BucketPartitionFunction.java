@@ -40,7 +40,7 @@ public class BucketPartitionFunction
     }
 
     /**
-     * @param functionArguments the arguments to partition function in order (no extra columns)
+     * @param functionArguments the arguments to bucketing function in order (no extra columns)
      */
     public int getPartition(Page functionArguments, int position)
     {
