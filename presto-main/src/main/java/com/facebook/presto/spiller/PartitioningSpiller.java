@@ -28,13 +28,21 @@ public interface PartitioningSpiller
 {
     /**
      * Partition page and enqueue partitioned pages to spill writers.
-     * PartitioningSpillResult::isBlocked returns completed future when finished.
+     * Result's @{link PartitioningSpillResult#getSpillingFuture} is completed when spilling is finished.
+     * <p>
+     * This method may not be called if previously initiated spilling is not finished yet.
      */
     PartitioningSpillResult partitionAndSpill(Page page, IntPredicate spillPartitionMask);
 
     /**
-     * Returns iterator of previously spilled Pages from given partition.
+     * Returns iterator of previously spilled pages from given partition. Whether partition
+     * can be read more than once, is an implementation detail.
+     * <p>
+     * This method may not be called if previously initiated spilling is not finished yet.
+     * <p>
+     * This method may perform blocking I/O to flush internal buffers.
      */
+    // TODO getSpilledPages should not need flush last buffer to disk
     Iterator<Page> getSpilledPages(int partition);
 
     void verifyAllPartitionsRead();
