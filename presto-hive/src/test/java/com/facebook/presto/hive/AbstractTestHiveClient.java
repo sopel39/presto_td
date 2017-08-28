@@ -132,7 +132,6 @@ import static com.facebook.presto.hive.HiveMetadata.PRESTO_QUERY_ID_NAME;
 import static com.facebook.presto.hive.HiveMetadata.PRESTO_VERSION_NAME;
 import static com.facebook.presto.hive.HiveMetadata.convertToPredicate;
 import static com.facebook.presto.hive.HiveStorageFormat.AVRO;
-import static com.facebook.presto.hive.HiveStorageFormat.DWRF;
 import static com.facebook.presto.hive.HiveStorageFormat.JSON;
 import static com.facebook.presto.hive.HiveStorageFormat.ORC;
 import static com.facebook.presto.hive.HiveStorageFormat.PARQUET;
@@ -2904,6 +2903,10 @@ public abstract class AbstractTestHiveClient
 
     protected static void assertPageSourceType(ConnectorPageSource pageSource, HiveStorageFormat hiveStorageFormat)
     {
+        if (pageSource instanceof TimestampFixingHiveConnectorPageSource) {
+            pageSource = ((TimestampFixingHiveConnectorPageSource) pageSource).getInternalPageSource();
+        }
+
         if (pageSource instanceof RecordPageSource) {
             RecordCursor hiveRecordCursor = ((RecordPageSource) pageSource).getCursor();
             hiveRecordCursor = ((HiveRecordCursor) hiveRecordCursor).getRegularColumnRecordCursor();
