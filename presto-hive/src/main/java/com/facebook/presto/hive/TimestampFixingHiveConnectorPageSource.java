@@ -17,6 +17,7 @@ import com.facebook.presto.spi.ConnectorPageSource;
 import com.facebook.presto.spi.Page;
 import com.facebook.presto.spi.type.Type;
 import com.facebook.presto.spi.type.TypeManager;
+import com.google.common.annotations.VisibleForTesting;
 import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
@@ -85,5 +86,12 @@ public class TimestampFixingHiveConnectorPageSource
             throws IOException
     {
         connectorPageSource.close();
+    }
+
+    @VisibleForTesting
+    // This should never be used outside of tests
+    ConnectorPageSource getInternalPageSource()
+    {
+        return connectorPageSource;
     }
 }
