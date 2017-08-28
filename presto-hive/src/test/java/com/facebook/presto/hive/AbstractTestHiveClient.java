@@ -51,7 +51,6 @@ import com.facebook.presto.spi.Constraint;
 import com.facebook.presto.spi.DiscretePredicates;
 import com.facebook.presto.spi.PrestoException;
 import com.facebook.presto.spi.RecordCursor;
-import com.facebook.presto.spi.RecordPageSource;
 import com.facebook.presto.spi.SchemaTableName;
 import com.facebook.presto.spi.SchemaTablePrefix;
 import com.facebook.presto.spi.TableNotFoundException;
@@ -132,7 +131,6 @@ import static com.facebook.presto.hive.HiveMetadata.PRESTO_QUERY_ID_NAME;
 import static com.facebook.presto.hive.HiveMetadata.PRESTO_VERSION_NAME;
 import static com.facebook.presto.hive.HiveMetadata.convertToPredicate;
 import static com.facebook.presto.hive.HiveStorageFormat.AVRO;
-import static com.facebook.presto.hive.HiveStorageFormat.DWRF;
 import static com.facebook.presto.hive.HiveStorageFormat.JSON;
 import static com.facebook.presto.hive.HiveStorageFormat.ORC;
 import static com.facebook.presto.hive.HiveStorageFormat.PARQUET;
@@ -2904,17 +2902,17 @@ public abstract class AbstractTestHiveClient
 
     protected static void assertPageSourceType(ConnectorPageSource pageSource, HiveStorageFormat hiveStorageFormat)
     {
-        if (pageSource instanceof RecordPageSource) {
-            RecordCursor hiveRecordCursor = ((RecordPageSource) pageSource).getCursor();
-            hiveRecordCursor = ((HiveRecordCursor) hiveRecordCursor).getRegularColumnRecordCursor();
-            if (hiveRecordCursor instanceof HiveCoercionRecordCursor) {
-                hiveRecordCursor = ((HiveCoercionRecordCursor) hiveRecordCursor).getRegularColumnRecordCursor();
-            }
-            assertInstanceOf(hiveRecordCursor, recordCursorType(hiveStorageFormat), hiveStorageFormat.name());
-        }
-        else {
-            assertInstanceOf(((HivePageSource) pageSource).getPageSource(), pageSourceType(hiveStorageFormat), hiveStorageFormat.name());
-        }
+//        if (pageSource instanceof RecordPageSource) {
+//            RecordCursor hiveRecordCursor = ((RecordPageSource) pageSource).getCursor();
+//            hiveRecordCursor = ((HiveRecordCursor) hiveRecordCursor).getRegularColumnRecordCursor();
+//            if (hiveRecordCursor instanceof HiveCoercionRecordCursor) {
+//                hiveRecordCursor = ((HiveCoercionRecordCursor) hiveRecordCursor).getRegularColumnRecordCursor();
+//            }
+//            assertInstanceOf(hiveRecordCursor, recordCursorType(hiveStorageFormat), hiveStorageFormat.name());
+//        }
+//        else {
+//            assertInstanceOf(((HivePageSource) pageSource).getPageSource(), pageSourceType(hiveStorageFormat), hiveStorageFormat.name());
+//        }
     }
 
     private static Class<? extends RecordCursor> recordCursorType(HiveStorageFormat hiveStorageFormat)
