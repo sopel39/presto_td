@@ -120,7 +120,7 @@ public class JdbcTests
             throws SQLException
     {
         connection.setCatalog("hive");
-        connection.setSchema("default");
+        connection.setSchema(schema);
         try (Statement statement = connection.createStatement()) {
             QueryResult result = queryResult(statement, "select * from nation");
             assertThat(result).matches(PRESTO_NATION_RESULT);
