@@ -19,14 +19,12 @@ import com.facebook.presto.sql.tree.SymbolReference;
 import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static com.facebook.presto.sql.ExpressionUtils.extractConjuncts;
 import static com.facebook.presto.sql.ExpressionUtils.rewriteIdentifiersToSymbolReferences;
-import static com.google.common.collect.ImmutableList.toImmutableList;
 import static org.testng.AssertJUnit.assertEquals;
 
 public class TestSortExpressionExtractor
@@ -64,24 +62,16 @@ public class TestSortExpressionExtractor
         return rewriteIdentifiersToSymbolReferences(new SqlParser().createExpression(sql));
     }
 
-    private void assertGetSortExpression(Expression expression)
+    private static void assertGetSortExpression(Expression expression)
     {
         Optional<SortExpressionContext> actual = SortExpressionExtractor.extractSortExpression(BUILD_SYMBOLS, expression);
         assertEquals(Optional.empty(), actual);
     }
 
-    private void assertGetSortExpression(Expression expression, String expectedSymbol)
+    private static void assertGetSortExpression(Expression expression, String expectedSymbol)
     {
         // for now we expect that search expressions contain all the conjuncts from filterExpression as more complex cases are not supported yet.
         assertGetSortExpression(expression, expectedSymbol, extractConjuncts(expression));
-    }
-
-    private void assertGetSortExpression(Expression expression, String expectedSymbol, String... searchExpressions)
-    {
-        List<Expression> searchExpressionList = Arrays.stream(searchExpressions)
-                .map(this::expression)
-                .collect(toImmutableList());
-        assertGetSortExpression(expression, expectedSymbol, searchExpressionList);
     }
 
     private static void assertGetSortExpression(Expression expression, String expectedSymbol, List<Expression> searchExpressions)
