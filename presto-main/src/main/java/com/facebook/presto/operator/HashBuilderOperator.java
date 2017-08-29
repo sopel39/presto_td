@@ -73,7 +73,7 @@ public class HashBuilderOperator
         {
             this.operatorId = operatorId;
             this.planNodeId = requireNonNull(planNodeId, "planNodeId is null");
-            requireNonNull(sortChannel, "sortChannel can not be null");
+            requireNonNull(sortChannel, "sortChannel is null");
             requireNonNull(searchFunctionFactories, "searchFunctionFactories is null");
             checkArgument(sortChannel.isPresent() != searchFunctionFactories.isEmpty(), "both or none sortChannel and searchFunctionFactories must be set");
             checkArgument(Integer.bitCount(partitionCount) == 1, "partitionCount must be a power of 2");
