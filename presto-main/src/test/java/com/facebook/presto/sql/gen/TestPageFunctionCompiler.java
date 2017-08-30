@@ -90,7 +90,7 @@ public class TestPageFunctionCompiler
         Supplier<PageProjection> projectionSupplier = functionCompiler.compileProjection(ADD_10_EXPRESSION, Optional.of(classSuffix));
         PageProjection projection = projectionSupplier.get();
         // class name should look like PageProjection_20170707_223500_67496_zguwn_2_7_XX
-        assertTrue(projection.getClass().getSimpleName().startsWith("PageProjection_" + stageId.replace('.', '_') + "_" + planNodeId));
+        assertTrue(projection.getClass().getSimpleName().startsWith("PageProjection_"));
     }
 
     @Test
