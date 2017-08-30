@@ -68,7 +68,6 @@ public class FileSingleStreamSpiller
     private final ListeningExecutorService executor;
 
     private boolean writable = true;
-    private boolean read;
     private long spilledPagesInMemorySize;
     private ListenableFuture<?> spillInProgress = Futures.immediateFuture(null);
 
@@ -147,15 +146,9 @@ public class FileSingleStreamSpiller
 
     private Iterator<Page> readPages()
     {
-        if (read) {
-            /*
-             * Repeated reads would mean multiple opened InputStreams and effectively temporary, but dangerous, resource leak.
-             */
-            throw new RuntimeException("Already read");
-        }
-        read = true;
-
+        checkState(writable, "Repeated reads are disallowed to prevent potential resource leaks");
         writable = false;
+
         try {
             InputStream input = targetFile.newInputStream();
             Closeable resources = closer.register(combineCloseables(input, () -> memoryContext.setBytes(0)));
