@@ -82,36 +82,6 @@ public class HashBuilderOperator
                 Optional<JoinFilterFunctionFactory> filterFunctionFactory,
                 int expectedPositions,
                 int partitionCount,
-                PagesIndex.Factory pagesIndexFactory)
-        {
-            this(operatorId,
-                    planNodeId,
-                    types,
-                    outputChannels,
-                    layout,
-                    hashChannels,
-                    preComputedHashChannel,
-                    outer,
-                    filterFunctionFactory,
-                    expectedPositions,
-                    partitionCount,
-                    pagesIndexFactory,
-                    false,
-                    SingleStreamSpillerFactory.unsupportedSingleStreamSpillerFactory());
-        }
-
-        public HashBuilderOperatorFactory(
-                int operatorId,
-                PlanNodeId planNodeId,
-                List<Type> types,
-                List<Integer> outputChannels,
-                Map<Symbol, Integer> layout,
-                List<Integer> hashChannels,
-                OptionalInt preComputedHashChannel,
-                boolean outer,
-                Optional<JoinFilterFunctionFactory> filterFunctionFactory,
-                int expectedPositions,
-                int partitionCount,
                 PagesIndex.Factory pagesIndexFactory,
                 boolean spillEnabled,
                 SingleStreamSpillerFactory singleStreamSpillerFactory)

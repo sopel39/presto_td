@@ -17,6 +17,7 @@ import com.facebook.presto.RowPagesBuilder;
 import com.facebook.presto.operator.HashBuilderOperator.HashBuilderOperatorFactory;
 import com.facebook.presto.spi.Page;
 import com.facebook.presto.spi.type.Type;
+import com.facebook.presto.spiller.SingleStreamSpillerFactory;
 import com.facebook.presto.sql.gen.JoinProbeCompiler;
 import com.facebook.presto.sql.planner.plan.PlanNodeId;
 import com.facebook.presto.testing.TestingTaskContext;
@@ -293,7 +294,9 @@ public class BenchmarkHashBuildAndJoinOperators
                 Optional.empty(),
                 10_000,
                 1,
-                new PagesIndex.TestingFactory());
+                new PagesIndex.TestingFactory(),
+                false,
+                SingleStreamSpillerFactory.unsupportedSingleStreamSpillerFactory());
 
         Operator operator = hashBuilderOperatorFactory.createOperator(driverContext);
         for (Page page : buildContext.getBuildPages()) {

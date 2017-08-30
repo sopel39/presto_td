@@ -23,6 +23,7 @@ import com.facebook.presto.operator.LookupSourceProvider;
 import com.facebook.presto.operator.OperatorFactory;
 import com.facebook.presto.operator.PagesIndex;
 import com.facebook.presto.operator.TaskContext;
+import com.facebook.presto.spiller.SingleStreamSpillerFactory;
 import com.facebook.presto.sql.gen.JoinProbeCompiler;
 import com.facebook.presto.sql.planner.plan.PlanNodeId;
 import com.facebook.presto.testing.LocalQueryRunner;
@@ -73,7 +74,9 @@ public class HashJoinBenchmark
                     Optional.empty(),
                     1_500_000,
                     1,
-                    new PagesIndex.TestingFactory());
+                    new PagesIndex.TestingFactory(),
+                    false,
+                    SingleStreamSpillerFactory.unsupportedSingleStreamSpillerFactory());
 
             DriverContext driverContext = taskContext.addPipelineContext(0, false, false).addDriverContext();
             Driver driver = new DriverFactory(0, false, false, ImmutableList.of(ordersTableScan, hashBuilder), OptionalInt.empty()).createDriver(driverContext);
