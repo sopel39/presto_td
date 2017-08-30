@@ -23,10 +23,10 @@ public class PrestoIterators
 {
     private PrestoIterators() {}
 
-    public static <T> Iterator<T> runWhenExhausted(Iterator<T> iterator, Runnable onExhaustion)
+    public static <T> Iterator<T> closeWhenExhausted(Iterator<T> iterator, AutoCloseable resource)
     {
         requireNonNull(iterator, "iterator is null");
-        requireNonNull(onExhaustion, "onExhaustion is null");
+        requireNonNull(resource, "resource is null");
 
         return new AbstractIterator<T>()
         {
@@ -37,32 +37,15 @@ public class PrestoIterators
                     return iterator.next();
                 }
                 else {
-                    try (UncheckedCloseable ignore = onExhaustion::run) {
-                        return endOfData();
+                    try {
+                        resource.close();
                     }
+                    catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                    return endOfData();
                 }
             }
         };
-    }
-
-    public static <T> Iterator<T> closeWhenExhausted(Iterator<T> iterator, AutoCloseable resource)
-    {
-        requireNonNull(resource, "resource is null");
-
-        return runWhenExhausted(iterator, () -> {
-            try {
-                resource.close();
-            }
-            catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    private interface UncheckedCloseable
-            extends AutoCloseable
-    {
-        @Override
-        void close();
     }
 }
