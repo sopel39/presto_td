@@ -4060,6 +4060,7 @@ public abstract class AbstractTestQueries
         MaterializedResult actual = computeActual("SELECT " +
                 "sum(quantity) OVER(PARTITION BY suppkey ORDER BY orderkey)," +
                 "min(tax) OVER(PARTITION BY suppkey ORDER BY shipdate)" +
+                "avg(quantity) OVER(PARTITION BY suppkey ORDER BY shipdate)" +
                 "FROM lineitem " +
                 "ORDER BY 1 " +
                 "LIMIT 10");

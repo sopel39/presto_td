@@ -55,6 +55,7 @@ import static com.facebook.presto.bytecode.CompilerUtils.defineClass;
 import static com.facebook.presto.bytecode.CompilerUtils.makeClassName;
 import static com.facebook.presto.bytecode.Parameter.arg;
 import static com.facebook.presto.bytecode.ParameterizedType.type;
+import static com.facebook.presto.bytecode.expression.BytecodeExpressions.constantBoolean;
 import static com.facebook.presto.bytecode.expression.BytecodeExpressions.constantFalse;
 import static com.facebook.presto.bytecode.expression.BytecodeExpressions.constantInt;
 import static com.facebook.presto.bytecode.expression.BytecodeExpressions.constantString;
@@ -130,7 +131,10 @@ public class AccumulatorCompiler
 
         // Generate methods
         generateAddInput(definition, stateField, inputChannelsField, maskChannelField, metadata.getInputMetadata(), metadata.getInputFunction(), callSiteBinder, grouped);
-        generateAddInputWindowIndex(definition, stateField, metadata.getInputMetadata(), metadata.getInputFunction(), callSiteBinder);
+        generateAddOrRemoveInputWindowIndex(definition, stateField, metadata.getInputMetadata(), metadata.getInputFunction(), "addInput", callSiteBinder);
+        generateHasRemoveInput(definition, metadata.getRemoveInputFunction().isPresent());
+        metadata.getRemoveInputFunction().ifPresent(
+                removeInputFunction -> generateAddOrRemoveInputWindowIndex(definition, stateField, metadata.getInputMetadata(), removeInputFunction, "removeInput", callSiteBinder));
         generateGetEstimatedSize(definition, stateField);
         generateGetIntermediateType(definition, callSiteBinder, stateSerializer.getSerializedType());
         generateGetFinalType(definition, callSiteBinder, metadata.getOutputType());
@@ -243,11 +247,19 @@ public class AccumulatorCompiler
         body.ret();
     }
 
-    private static void generateAddInputWindowIndex(
+    private static void generateHasRemoveInput(ClassDefinition definition, boolean hasRemoveInput)
+    {
+        MethodDefinition method = definition.declareMethod(a(PUBLIC), "hasRemoveInput", type(boolean.class));
+        method.getBody()
+                .append(constantBoolean(hasRemoveInput).ret());
+    }
+
+    private static void generateAddOrRemoveInputWindowIndex(
             ClassDefinition definition,
             FieldDefinition stateField,
             List<ParameterMetadata> parameterMetadatas,
             MethodHandle inputFunction,
+            String generatedFunctionName,
             CallSiteBinder callSiteBinder)
     {
         // TODO: implement masking based on maskChannel field once Window Functions support DISTINCT arguments to the functions.
@@ -257,7 +269,11 @@ public class AccumulatorCompiler
         Parameter startPosition = arg("startPosition", int.class);
         Parameter endPosition = arg("endPosition", int.class);
 
-        MethodDefinition method = definition.declareMethod(a(PUBLIC), "addInput", type(void.class), ImmutableList.of(index, channels, startPosition, endPosition));
+        MethodDefinition method = definition.declareMethod(
+                a(PUBLIC),
+                generatedFunctionName,
+                type(void.class),
+                ImmutableList.of(index, channels, startPosition, endPosition));
         Scope scope = method.getScope();
 
         Variable position = scope.declareVariable(int.class, "position");
@@ -266,7 +282,7 @@ public class AccumulatorCompiler
         BytecodeExpression invokeInputFunction = invokeDynamic(
                 BOOTSTRAP_METHOD,
                 ImmutableList.of(binding.getBindingId()),
-                "input",
+                generatedFunctionName,
                 binding.getType(),
                 getInvokeFunctionOnWindowIndexParameters(
                         scope,

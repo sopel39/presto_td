@@ -66,19 +66,52 @@ public class AggregateWindowFunction
             currentEnd = frameEnd;
         }
         else {
-            // different frame
-            resetAccumulator();
-            accumulate(frameStart, frameEnd);
-            currentStart = frameStart;
-            currentEnd = frameEnd;
+            buildNewFrame(frameStart, frameEnd);
         }
 
         accumulator.evaluateFinal(output);
     }
 
+    private void buildNewFrame(int frameStart, int frameEnd)
+    {
+        if (accumulator.hasRemoveInput()) {
+            int overlapStart = Integer.max(frameStart, currentStart);
+            int overlapEnd = Integer.min(frameEnd, currentEnd);
+            int prefixRemoveLength = overlapStart - currentStart;
+            int suffixRemoveLength = currentEnd - overlapEnd;
+
+            if ((overlapEnd - overlapStart) > (prefixRemoveLength + suffixRemoveLength)) {
+                // It's worth keeping the overlap, and removing the now-unused prefix
+                if (currentStart < frameStart) {
+                    remove(currentStart, frameStart);
+                }
+                if (frameEnd < currentEnd) {
+                    remove(frameEnd, currentEnd);
+                }
+                if (frameStart < currentStart) {
+                    accumulate(frameStart, currentStart);
+                }
+                if (currentEnd < frameEnd) {
+                    accumulate(currentEnd, frameEnd);
+                }
+                return;
+            }
+        }
+        // We couldn't or didn't want to modify the accumulation:  instead, discard the current accumulation and start fresh.
+        resetAccumulator();
+        accumulate(frameStart, frameEnd);
+        currentStart = frameStart;
+        currentEnd = frameEnd;
+    }
+
     private void accumulate(int start, int end)
     {
         accumulator.addInput(windowIndex, argumentChannels, start, end);
+    }
+
+    private void remove(int start, int end)
+    {
+        accumulator.removeInput(windowIndex, argumentChannels, start, end);
     }
 
     private void resetAccumulator()
