@@ -20,6 +20,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
@@ -28,7 +29,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
 @ThreadSafe
-public final class FileHolder
+final class FileHolder
         implements Closeable
 {
     private final Path filePath;
@@ -57,11 +58,17 @@ public final class FileHolder
 
     @Override
     public synchronized void close()
-            throws IOException
     {
-        if (!deleted) {
+        if (deleted) {
+            return;
+        }
+        deleted = true;
+
+        try {
             Files.delete(filePath);
-            deleted = true;
+        }
+        catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }
