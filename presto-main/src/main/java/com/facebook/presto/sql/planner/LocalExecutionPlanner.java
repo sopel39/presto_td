@@ -1703,7 +1703,7 @@ public class LocalExecutionPlanner
         {
             OptionalInt driverInstanceCount = context.getDriverInstanceCount();
             if (isSpillEnabled(session)) {
-                checkState(driverInstanceCount.isPresent(), "Indeterminate number of LookupJoinOperator-s when using spill to disk. This is a bug.");
+                checkState(driverInstanceCount.isPresent(), "A fixed distribution is required for JOIN when spilling is enabled");
             }
             return driverInstanceCount;
         }
