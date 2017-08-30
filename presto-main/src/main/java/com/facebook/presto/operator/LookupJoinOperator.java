@@ -274,7 +274,6 @@ public class LookupJoinOperator
         checkSuccess(spillInProgress, "spilling failed");
 
         if (probe == null && pageBuilder.isEmpty() && !finishing) {
-            // Fast exit path when lookup source is still being built
             return null;
         }
 
