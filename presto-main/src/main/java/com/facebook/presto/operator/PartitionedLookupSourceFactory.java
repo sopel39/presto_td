@@ -289,7 +289,7 @@ public final class PartitionedLookupSourceFactory
             }
 
             int operatorsCount = lookupJoinsCount
-                    .orElseThrow(() -> new IllegalStateException("Indeterminate number of LookupJoinOperator-s when using spill to disk. This is a bug."));
+                    .orElseThrow(() -> new IllegalStateException("A fixed distribution is required for JOIN when spilling is enabled"));
             checkState(finishedProbeOperators < operatorsCount, "%s probe operators finished out of %s declared", finishedProbeOperators + 1, operatorsCount);
 
             if (!partitionedConsumptionParticipants.isPresent()) {
