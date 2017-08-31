@@ -41,19 +41,19 @@ public class SingleMapBlockWriter
     }
 
     @Override
-    int getOffset()
+    public int getOffset()
     {
         return offset;
     }
 
     @Override
-    Block getKeyBlock()
+    public Block getKeyBlock()
     {
         return keyBlockBuilder;
     }
 
     @Override
-    Block getValueBlock()
+    public Block getValueBlock()
     {
         return valueBlockBuilder;
     }
