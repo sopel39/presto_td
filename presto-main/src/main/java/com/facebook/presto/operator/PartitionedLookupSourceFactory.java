@@ -211,7 +211,7 @@ public final class PartitionedLookupSourceFactory
             }
             else {
                 partitionsSet++;
-                completed = partitionsSet == partitions.length;
+                completed = (partitionsSet == partitions.length);
             }
 
             partitions[partitionIndex] = () -> spilledLookupSource;
