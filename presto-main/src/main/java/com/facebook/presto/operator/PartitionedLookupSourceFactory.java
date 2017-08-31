@@ -175,7 +175,7 @@ public final class PartitionedLookupSourceFactory
             checkState(!spilledPartitions.containsKey(partitionIndex), "Partition already set as spilled");
             partitions[partitionIndex] = partitionLookupSource;
             partitionsSet++;
-            completed = partitionsSet == partitions.length;
+            completed = (partitionsSet == partitions.length);
         }
         finally {
             rwLock.writeLock().unlock();
