@@ -13,8 +13,8 @@ Description
 -----------
 
 Describes the input parameters for a prepared statement. It returns a table
-with the position and type of each parameter. If the type of the parameter can
-not be determined, unknown is returned.
+with the position and type of each parameter. Parameter types that cannot be
+determined will appear as ``unknown``.
 
 Examples
 --------

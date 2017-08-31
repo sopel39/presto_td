@@ -12,10 +12,10 @@ Synopsis
 Description
 -----------
 
-Prepares a statement for execution later. Prepared statements are queries that
-are saved on a per-session basis with a given name. The statement can include
-parameters in place of literals to be filled in at execution time. Parameters
-are represented by question marks.
+Prepares a statement for execution at a later time. Prepared statements are
+queries that are saved on a per-session basis with a given name. The statement
+can include parameters in place of literals to be filled in at execution time.
+Parameters are represented by question marks.
 
 Examples
 --------

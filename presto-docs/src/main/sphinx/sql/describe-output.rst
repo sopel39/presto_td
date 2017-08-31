@@ -13,10 +13,10 @@ Description
 -----------
 
 Describes the output columns of a prepared statement.  It returns a table
-with metadata about each output column. Each row in the output provides the
-following information: column name (or the column's alias if it is aliased),
-catalog, schema, table, type, type size in bytes, and a boolean indicating
-whether the column is aliased.
+containing metadata for output columns of a prepared statement. For each
+output column, the column name (or alias), catalog, schema, table, type,
+type size in bytes, and a boolean indicating if the column is aliased is
+returned.
 
 Examples
 --------
