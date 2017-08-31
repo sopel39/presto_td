@@ -55,7 +55,7 @@ Bug Fixes
 
 Security Changes
 ----------------
-* Add Kerberos principal matcing rules to file-based system access control.
+* Add Kerberos principal matching rules to file-based system access control.
 * Support secure internal communication between Presto nodes via HTTPS.
 * Support secure internal communication between Presto nodes via LDAP.
 * Support secure internal communication between Presto nodes via Kerberos.
