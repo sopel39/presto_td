@@ -67,25 +67,25 @@ public class RowBlockBuilder
     }
 
     @Override
-    protected Block[] getFieldBlocks()
+    public Block[] getFieldBlocks()
     {
         return fieldBlockBuilders;
     }
 
     @Override
-    protected int[] getFieldBlockOffsets()
+    public int[] getFieldBlockOffsets()
     {
         return fieldBlockOffsets;
     }
 
     @Override
-    protected int getOffsetBase()
+    public int getOffsetBase()
     {
         return 0;
     }
 
     @Override
-    protected boolean[] getRowIsNull()
+    public boolean[] getRowIsNull()
     {
         return rowIsNull;
     }
